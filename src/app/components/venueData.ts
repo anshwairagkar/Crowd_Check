@@ -112,4 +112,18 @@ export const INITIAL_VENUES: Venue[] = [
     openHours: '08:00 – 23:00',
     lastUpdated: '07:42:17',
   },
+  {
+    id: 'venue-007',
+    name: 'Treasure Island Mall (TI Mall)',
+    category: 'Retail',
+    address: '11, Mahatma Gandhi Rd, South Tukoganj, Indore, Madhya Pradesh 452001',
+    coordinates: { lat: 22.72097, lng: 75.87853 },
+    maxCapacity: 2400,
+    presentCount: 128,
+    waitingCount: 555,
+    cameraCount: 21,
+    floor: '8 Floors',
+    openHours: '11:00 – 22:00',
+    lastUpdated: '07:42:18',
+  },
 ];
