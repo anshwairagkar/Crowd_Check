@@ -79,7 +79,7 @@ export default function DashboardTopbar() {
                 OC
               </div>
               <div className="hidden sm:block">
-                <p className="text-xs font-medium" style={{ color: 'var(--foreground)' }}>Ops Center</p>
+                <p className="text-xs font-medium" style={{ color: 'var(--foreground)' }}>Ansh Wairagkar</p>
                 <p className="text-xs" style={{ color: 'var(--muted-foreground)' }}>Admin</p>
               </div>
             </div>
