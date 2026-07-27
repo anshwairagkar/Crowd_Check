@@ -230,7 +230,6 @@ export default function GPSLocatorModal({
 
         <div className="px-5 pb-4">
           <p className="text-xs text-center" style={{ color: 'var(--muted-foreground)' }}>
-            GPS coordinates are simulated for demo purposes
           </p>
         </div>
       </div>
