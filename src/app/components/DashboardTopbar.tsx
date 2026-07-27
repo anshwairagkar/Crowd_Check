@@ -76,7 +76,7 @@ export default function DashboardTopbar() {
                 className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-semibold"
                 style={{ background: 'rgba(34,211,238,0.15)', color: 'var(--primary)' }}
               >
-                OC
+                AW
               </div>
               <div className="hidden sm:block">
                 <p className="text-xs font-medium" style={{ color: 'var(--foreground)' }}>Ansh Wairagkar</p>
