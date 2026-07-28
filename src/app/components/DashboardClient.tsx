@@ -11,6 +11,7 @@ import AlertBanner from './AlertBanner';
 import LiveTickerBar from './LiveTickerBar';
 import AdminPanel from './AdminPanel';
 import { Settings2 } from 'lucide-react';
+import DashboardTopbar from './DashboardTopbar';
 
 function fluctuateCount(current: number, max: number, delta: number): number {
   const noise = Math.floor((Math.random() - 0.45) * delta);
@@ -143,6 +144,13 @@ export default function DashboardClient() {
 
   return (
     <>
+      <DashboardTopbar 
+        onOpenAlerts={() => toast.info('System Alerts', { description: 'Viewing recent notifications.' })}
+        onOpenShield={() => toast.success('Security Status', { description: 'All camera encryption feeds active.' })}
+        onOpenSettings={() => setShowAdmin(true)}
+        onOpenProfile={() => setShowAdmin(true)}
+      />
+      
       <Toaster
         position="bottom-right"
         theme="dark"
