@@ -6,14 +6,12 @@ interface DashboardTopbarProps {
   onOpenAlerts?: () => void;
   onOpenShield?: () => void;
   onOpenSettings?: () => void;
-  onOpenProfile?: () => void;
 }
 
 export default function DashboardTopbar({
   onOpenAlerts,
   onOpenShield,
   onOpenSettings,
-  onOpenProfile,
 }: DashboardTopbarProps) {
   return (
     <header
@@ -96,13 +94,7 @@ export default function DashboardTopbar({
             >
               <Settings size={18} style={{ color: 'var(--muted-foreground)' }} />
             </button>
-
-            {/* User Profile Area */}
-            <button
-              onClick={onOpenProfile}
-              className="ml-2 flex items-center gap-2 pl-3 border-l hover:opacity-80 cursor-pointer"
-              style={{ borderColor: 'var(--border)' }}
-            >
+            
               <div
                 className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-semibold"
                 style={{ background: 'rgba(34,211,238,0.15)', color: 'var(--primary)' }}
@@ -117,7 +109,6 @@ export default function DashboardTopbar({
                   Admin
                 </p>
               </div>
-            </button>
           </div>
         </div>
       </div>
