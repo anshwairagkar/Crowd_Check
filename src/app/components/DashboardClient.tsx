@@ -148,7 +148,6 @@ export default function DashboardClient() {
         onOpenAlerts={() => toast.info('System Alerts', { description: 'Viewing recent notifications.' })}
         onOpenShield={() => toast.success('Security Status', { description: 'All camera encryption feeds active.' })}
         onOpenSettings={() => setShowAdmin(true)}
-        onOpenProfile={() => setShowAdmin(true)}
       />
       
       <Toaster
