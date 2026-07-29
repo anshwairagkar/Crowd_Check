@@ -198,17 +198,17 @@ export const INITIAL_VENUES: Venue[] = [
 },
 {
   "id": "venue-013",
-  "name": "Treasure Island Mall (TI Mall)",
-  "category": "Retail",
-  "address": "11, Mahatma Gandhi Rd, South Tukoganj, Indore, Madhya Pradesh 452001",
-  "coordinates": { "lat": 22.72097, "lng": 75.87853 },
-  "maxCapacity": 2400,
-  "presentCount": 1280,
-  "waitingCount": 21,
-  "cameraCount": 17,
-  "floor": "8 Floors",
-  "openHours": "11:00 - 22:00",
-  "lastUpdated": "07:42:18"
+  "name": "Madhya Pradesh High Court (Indore Bench)",
+  "category": "Government",
+  "address": "High Court Road, South Tukoganj, Indore, Madhya Pradesh 452001",
+  "coordinates": { "lat": 22.7219, "lng": 75.8778 },
+  "maxCapacity": 1500,
+  "presentCount": 0,
+  "waitingCount": 0,
+  "cameraCount": 42,
+  "floor": "3 Floors",
+  "openHours": "10:00 - 17:00",
+  "lastUpdated": "00:00:00"
 },
 {
   "id": "venue-014",
@@ -378,19 +378,5 @@ export const INITIAL_VENUES: Venue[] = [
   "openHours": "10:00 - 18:00",
   "lastUpdated": "00:00:00"
 },
-{
-  "id": "venue-026",
-  "name": "Madhya Pradesh High Court (Indore Bench)",
-  "category": "Government",
-  "address": "High Court Road, South Tukoganj, Indore, Madhya Pradesh 452001",
-  "coordinates": { "lat": 22.7219, "lng": 75.8778 },
-  "maxCapacity": 1500,
-  "presentCount": 0,
-  "waitingCount": 0,
-  "cameraCount": 42,
-  "floor": "3 Floors",
-  "openHours": "10:00 - 17:00",
-  "lastUpdated": "00:00:00"
-}
 
 ];
