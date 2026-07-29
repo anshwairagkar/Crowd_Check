@@ -32,7 +32,7 @@ export default function DashboardTopbar({
                 className="font-semibold text-lg tracking-tight"
                 style={{ color: 'var(--foreground)' }}
               >
-                CrowdCheck
+                Crowd Check
                 <span
                   className="ml-1 text-xs font-medium px-1.5 py-0.5 rounded"
                   style={{ background: 'rgba(34,211,238,0.12)', color: 'var(--primary)' }}
