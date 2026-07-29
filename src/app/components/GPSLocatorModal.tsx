@@ -28,6 +28,7 @@ const MOCK_DISTANCES: Record<string, string> = {
   'venue-004': '0.5 km',
   'venue-005': '3.4 km',
   'venue-006': '1.2 km',
+  'venue-007': '3 km',
 };
 
 export default function GPSLocatorModal({
