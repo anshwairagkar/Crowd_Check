@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useRef, useEffect, useState } from 'react';
-import { getDensityLevel, getOccupancyPercent, Venue, checkIsOpen } from './venueData';
+import { getDensityLevel, getOccupancyPercent, Venue, checkIsOpen, DensityLevel } from './venueData';
 import { Users, Clock, MapPin, Building2, TrendingUp, TrendingDown, Minus, Video,  } from 'lucide-react';
 import OccupancyRing from './OccupancyRing';
 import MiniSparkline from './MiniSparkline';
