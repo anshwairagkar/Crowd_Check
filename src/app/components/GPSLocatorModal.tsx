@@ -20,9 +20,9 @@ const DENSITY_COLORS: Record<string, string> = {
   CRITICAL: 'var(--density-critical)',
 };
 
-// Math formula to calculate actual distance in kilometers between two map coordinates
+// Math formula to calculate actual distance in kilometers
 function getDistance(lat1: number, lon1: number, lat2: number, lon2: number) {
-  const R = 6371; // Earth's radius in km
+  const R = 6371;
   const dLat = (lat2 - lat1) * (Math.PI / 180);
   const dLon = (lon2 - lon1) * (Math.PI / 180);
   const a =
@@ -39,38 +39,9 @@ export default function GPSLocatorModal({ isOpen, onClose, venues, onLocate }: G
   const [gpsState, setGpsState] = useState<GPSState>('idle');
   const [userLoc, setUserLoc] = useState<{ lat: number; lng: number } | null>(null);
 
-  if (!isOpen) return null;
-
-  const handleLocateMe = () => {
-    setGpsState('locating');
-
-    // 1. Check if the browser supports GPS
-    if (!navigator.geolocation) {
-      alert('Geolocation is not supported by your browser');
-      setGpsState('idle');
-      return;
-    }
-
-    // 2. Request the real device location
-    navigator.geolocation.getCurrentPosition(
-      (position) => {
-        setUserLoc({
-          lat: position.coords.latitude,
-          lng: position.coords.longitude,
-        });
-        setGpsState('located');
-      },
-      (error) => {
-        console.error('Error getting location:', error);
-        alert('Could not get your location. Please ensure location permissions are allowed in your browser pop-up.');
-        setGpsState('idle');
-      },
-      { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
-    );
-  };
-
-  // 3. Automatically sort venues by real distance once location is found
+  // FIXED: Moved this hook to the very top to satisfy React Rules of Hooks!
   const sortedVenues = useMemo(() => {
+    if (!venues) return [];
     if (!userLoc) return venues.map((v) => ({ ...v, distance: null }));
 
     return venues
@@ -82,6 +53,35 @@ export default function GPSLocatorModal({ isOpen, onClose, venues, onLocate }: G
       })
       .sort((a, b) => (a.distance || 0) - (b.distance || 0));
   }, [venues, userLoc]);
+
+  // FIXED: The early return must always come AFTER the hooks
+  if (!isOpen) return null;
+
+  const handleLocateMe = () => {
+    setGpsState('locating');
+
+    if (!navigator.geolocation) {
+      alert('Geolocation is not supported by your browser');
+      setGpsState('idle');
+      return;
+    }
+
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        setUserLoc({
+          lat: position.coords.latitude,
+          lng: position.coords.longitude,
+        });
+        setGpsState('located');
+      },
+      (error) => {
+        console.error('Error getting location:', error);
+        alert('Could not get your location. Please ensure location permissions are allowed in your browser.');
+        setGpsState('idle');
+      },
+      { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+    );
+  };
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
