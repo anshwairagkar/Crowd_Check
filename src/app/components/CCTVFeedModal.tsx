@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { Venue, getDensityLevel, DensityLevel } from './venueData';
+import { Venue, getDensityLevel, DensityLevel, checkIsOpen } from './venueData';
 import { X, Camera, Wifi, WifiOff, RefreshCw, Maximize2, AlertTriangle } from 'lucide-react';
 
 interface CCTVFeedModalProps {
@@ -25,15 +25,16 @@ const ZONE_NAMES = [
   'Reception Desk', 'Waiting Area', 'Concourse A', 'Concourse B',
 ];
 
-function generateCameras(venue: Venue): CameraFeed[] {
+function generateCameras(venue: Venue, isOpen: boolean): CameraFeed[] {
   const count = Math.min(venue.cameraCount, 8);
   return Array.from({ length: count }, (_, i) => ({
     id: i + 1,
     label: `CAM-${String(i + 1).padStart(2, '0')}`,
     zone: ZONE_NAMES[i % ZONE_NAMES.length],
-    status: Math.random() > 0.1 ? 'online' : Math.random() > 0.5 ? 'degraded' : 'offline',
-    detectedCount: Math.floor((venue.presentCount / count) * (0.5 + Math.random())),
-    motionLevel: Math.floor(Math.random() * 100),
+    // If closed, force offline. If open, run normal random status.
+    status: !isOpen ? 'offline' : (Math.random() > 0.1 ? 'online' : Math.random() > 0.5 ? 'degraded' : 'offline'),
+    detectedCount: !isOpen ? 0 : Math.floor((venue.presentCount / count) * (0.5 + Math.random())),
+    motionLevel: !isOpen ? 0 : Math.floor(Math.random() * 100),
   }));
 }
 
@@ -202,11 +203,14 @@ function SimulatedCameraView({
 }
 
 export default function CCTVFeedModal({ venue, onClose }: CCTVFeedModalProps) {
-  const [cameras, setCameras] = useState<CameraFeed[]>(() => generateCameras(venue));
+  const isOpen = checkIsOpen(venue.openHours);
+  const [cameras, setCameras] = useState<CameraFeed[]>(() => generateCameras(venue, isOpen));
   const [fullscreenCam, setFullscreenCam] = useState<number | null>(null);
 
-  // Periodically update detected counts
+  // Periodically update detected counts ONLY if the venue is open
   useEffect(() => {
+    if (!isOpen) return; // Do not run simulation if closed
+    
     const interval = setInterval(() => {
       setCameras(prev => prev.map(cam => ({
         ...cam,
@@ -215,11 +219,9 @@ export default function CCTVFeedModal({ venue, onClose }: CCTVFeedModalProps) {
       })));
     }, 2000);
     return () => clearInterval(interval);
-  }, []);
+  }, [isOpen]);
 
-  const level = getDensityLevel(venue.presentCount, venue.maxCapacity);
   const onlineCams = cameras.filter(c => c.status !== 'offline').length;
-
   const fullscreenCamera = fullscreenCam !== null ? cameras.find(c => c.id === fullscreenCam) : null;
 
   return (
@@ -249,12 +251,12 @@ export default function CCTVFeedModal({ venue, onClose }: CCTVFeedModalProps) {
                 CCTV Feeds — {venue.name}
               </h2>
               <div className="flex items-center gap-3 mt-0.5">
-                <span className="flex items-center gap-1 text-xs" style={{ color: '#22c55e' }}>
-                  <Wifi size={10} />
+                <span className="flex items-center gap-1 text-xs" style={{ color: onlineCams > 0 ? '#22c55e' : '#ef4444' }}>
+                  {onlineCams > 0 ? <Wifi size={10} /> : <WifiOff size={10} />}
                   {onlineCams}/{cameras.length} online
                 </span>
                 <span className="text-xs" style={{ color: 'var(--muted-foreground)' }}>
-                  {venue.presentCount} people detected
+                  {isOpen ? venue.presentCount : 0} people detected
                 </span>
               </div>
             </div>
