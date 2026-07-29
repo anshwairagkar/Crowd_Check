@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { Toaster, toast } from 'sonner';
-import { Venue, getDensityLevel } from './venueData';
+import { Venue, getDensityLevel, checkIsOpen } from './venueData';
 import { loadVenues, saveVenues } from './mockDb';
 import SearchAndGPS from './SearchAndGPS';
 import SummaryKPIRow from './SummaryKPIRow';
@@ -51,9 +51,17 @@ export default function DashboardClient() {
     const interval = setInterval(() => {
       setVenues(prev => {
         const updated = prev.map(v => {
+          const now = new Date().toLocaleTimeString('en-US', { hour12: false });
+          const isOpen = checkIsOpen(v.openHours);
+
+          // IF CLOSED: Force everything to 0
+          if (!isOpen) {
+            return { ...v, presentCount: 0, waitingCount: 0, lastUpdated: now };
+          }
+
+          // IF OPEN: Run the normal AI simulation
           const newPresent = fluctuateCount(v.presentCount, v.maxCapacity, 18);
           const newWaiting = fluctuateCount(v.waitingCount, Math.floor(v.maxCapacity * 0.3), 8);
-          const now = new Date().toLocaleTimeString('en-US', { hour12: false });
           return { ...v, presentCount: newPresent, waitingCount: newWaiting, lastUpdated: now };
         });
 
