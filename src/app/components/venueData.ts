@@ -380,3 +380,32 @@ export const INITIAL_VENUES: Venue[] = [
 },
 
 ];
+
+// Helper function to check if a venue is currently open
+export function checkIsOpen(openHours: string): boolean {
+  if (!openHours || openHours.includes('24/7')) return true;
+
+  try {
+    const [start, end] = openHours.split(' - ');
+    const now = new Date();
+    const currentHour = now.getHours();
+    const currentMinute = now.getMinutes();
+    const currentTime = currentHour + currentMinute / 60;
+
+    const [startH, startM] = start.split(':').map(Number);
+    const startTime = startH + (startM || 0) / 60;
+
+    const [endH, endM] = end.split(':').map(Number);
+    const endTime = endH + (endM || 0) / 60;
+
+    if (startTime < endTime) {
+      // Normal hours (e.g., 09:00 - 21:00)
+      return currentTime >= startTime && currentTime <= endTime;
+    } else {
+      // Overnight hours (e.g., 05:00 - 01:00)
+      return currentTime >= startTime || currentTime <= endTime;
+    }
+  } catch (e) {
+    return true; // If there is a typo in the hours, assume it is open to be safe
+  }
+}
