@@ -2,7 +2,7 @@
 
 import React, { useRef, useEffect, useState } from 'react';
 import { getDensityLevel, getOccupancyPercent, Venue, checkIsOpen, DensityLevel } from './venueData';
-import { Users, Clock, MapPin, Building2, TrendingUp, TrendingDown, Minus, Video,  } from 'lucide-react';
+import { Users, Clock, MapPin, Building2, TrendingUp, TrendingDown, Minus, Video } from 'lucide-react';
 import OccupancyRing from './OccupancyRing';
 import MiniSparkline from './MiniSparkline';
 import CCTVFeedModal from './CCTVFeedModal';
@@ -180,6 +180,7 @@ export default function VenueCard({ venue, isUpdated }: VenueCardProps) {
                 </span>
               )}
             </div>
+          </div>
 
           {/* Occupancy ring + metrics */}
           <div className="flex items-center gap-4 mb-4">
