@@ -378,7 +378,7 @@ export const INITIAL_VENUES: Venue[] = [
     openHours: "10:00 - 18:00",
     lastUpdated: "00:00:00"
   },
-
+  
 ];
 
 // Helper function to check if a venue is currently open
