@@ -26,16 +26,22 @@ const ZONE_NAMES = [
 ];
 
 function generateCameras(venue: Venue, isOpen: boolean): CameraFeed[] {
-  const count = Math.min(venue.cameraCount, 8);
-  return Array.from({ length: count }, (_, i) => ({
-    id: i + 1,
-    label: `CAM-${String(i + 1).padStart(2, '0')}`,
-    zone: ZONE_NAMES[i % ZONE_NAMES.length],
-    // If closed, force offline. If open, run normal random status.
-    status: !isOpen ? 'offline' : (Math.random() > 0.1 ? 'online' : Math.random() > 0.5 ? 'degraded' : 'offline'),
-    detectedCount: !isOpen ? 0 : Math.floor((venue.presentCount / count) * (0.5 + Math.random())),
-    motionLevel: !isOpen ? 0 : Math.floor(Math.random() * 100),
-  }));
+  const count = venue.cameraCount;
+  return Array.from({ length: count }, (_, i) => {
+    // Figure out the base name and if it has repeated
+    const baseName = ZONE_NAMES[i % ZONE_NAMES.length];
+    const cycle = Math.floor(i / ZONE_NAMES.length);
+    const finalZoneName = cycle === 0 ? baseName : `${baseName} ${cycle + 1}`;
+
+    return {
+      id: i + 1,
+      label: `CAM-${String(i + 1).padStart(2, '0')}`,
+      zone: finalZoneName,
+      status: !isOpen ? 'offline' : (Math.random() > 0.1 ? 'online' : Math.random() > 0.5 ? 'degraded' : 'offline'),
+      detectedCount: !isOpen ? 0 : Math.floor((venue.presentCount / count) * (0.5 + Math.random())),
+      motionLevel: !isOpen ? 0 : Math.floor(Math.random() * 100),
+    };
+  });
 }
 
 const DENSITY_COLORS: Record<DensityLevel, string> = {
