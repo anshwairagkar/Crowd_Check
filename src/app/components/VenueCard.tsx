@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useRef, useEffect, useState } from 'react';
-import { Venue, getDensityLevel, getOccupancyPercent, DensityLevel } from './venueData';
+import { getDensityLevel, getOccupancyPercent, Venue, checkIsOpen } from './venueData';
 import { Users, Clock, MapPin, Building2, TrendingUp, TrendingDown, Minus, Video,  } from 'lucide-react';
 import OccupancyRing from './OccupancyRing';
 import MiniSparkline from './MiniSparkline';
@@ -66,6 +66,7 @@ export default function VenueCard({ venue, isUpdated }: VenueCardProps) {
   const level = getDensityLevel(venue.presentCount, venue.maxCapacity);
   const pct = getOccupancyPercent(venue.presentCount, venue.maxCapacity);
   const config = DENSITY_CONFIG[level];
+  const isOpen = checkIsOpen(venue.openHours);
 
   const prevPresent = useRef(venue.presentCount);
   const [trend, setTrend] = useState<'up' | 'down' | 'flat'>('flat');
@@ -147,26 +148,38 @@ export default function VenueCard({ venue, isUpdated }: VenueCardProps) {
 
             {/* Density badge */}
             <div className="flex flex-col items-end gap-2 flex-shrink-0">
-              <span
-                className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold border"
-                style={{
-                  background: config.bgColor,
-                  borderColor: config.borderColor,
-                  color: config.textColor,
-                }}
-                aria-label={`Density: ${config.label}`}
-              >
+              {isOpen ? (
                 <span
-                  className="w-1.5 h-1.5 rounded-full"
+                  className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold border"
                   style={{
-                    background: config.ringColor,
-                    boxShadow: `0 0 4px ${config.ringColor}`,
+                    background: config.bgColor,
+                    borderColor: config.borderColor,
+                    color: config.textColor,
                   }}
-                />
-                {config.label}
-              </span>
+                  aria-label={`Density: ${config.label}`}
+                >
+                  <span
+                    className="w-1.5 h-1.5 rounded-full"
+                    style={{
+                      background: config.ringColor,
+                      boxShadow: `0 0 4px ${config.ringColor}`,
+                    }}
+                  />
+                  {config.label}
+                </span>
+              ) : (
+                <span
+                  className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold border"
+                  style={{
+                    background: 'rgba(255,255,255,0.05)',
+                    borderColor: 'var(--border)',
+                    color: 'var(--muted-foreground)',
+                  }}
+                >
+                  Closed
+                </span>
+              )}
             </div>
-          </div>
 
           {/* Occupancy ring + metrics */}
           <div className="flex items-center gap-4 mb-4">
