@@ -392,6 +392,48 @@ export const INITIAL_VENUES: Venue[] = [
   "openHours": "00:00 - 24:00",
   "lastUpdated": "00:00:00"
   },
+  {
+  "id": "venue-027",
+  "name": "Palasia Square",
+  "category": "Traffic Intersection",
+  "address": "MG Road, Old Palasia, Indore, Madhya Pradesh 452001",
+  "coordinates": { "lat": 22.7242, "lng": 75.8838 },
+  "maxCapacity": 800,
+  "presentCount": 580,
+  "waitingCount": 290,
+  "cameraCount": 5,
+  "floor": "Street Level",
+  "openHours": "00:00 - 24:00",
+  "lastUpdated": "00:00:00"
+  },
+  {
+  "id": "venue-028",
+  "name": "Vijay Nagar Square",
+  "category": "Traffic Intersection",
+  "address": "AB Road, Scheme No 54, Indore, Madhya Pradesh 452010",
+  "coordinates": { "lat": 22.7544, "lng": 75.8839 },
+  "maxCapacity": 1000,
+  "presentCount": 720,
+  "waitingCount": 380,
+  "cameraCount": 6,
+  "floor": "Metro Level",
+  "openHours": "00:00 - 24:00",
+  "lastUpdated": "00:00:00"
+  },
+  {
+  "id": "venue-029",
+  "name": "Radisson Square",
+  "category": "Traffic Intersection",
+  "address": "Eastern Ring Road, Vijay Nagar, Indore, Madhya Pradesh 452010",
+  "coordinates": { "lat": 22.7533, "lng": 75.8937 },
+  "maxCapacity": 1200,
+  "presentCount": 850,
+  "waitingCount": 450,
+  "cameraCount": 8,
+  "floor": "Flyover",
+  "openHours": "00:00 - 24:00",
+  "lastUpdated": "00:00:00"
+  },
 
 ];
 
