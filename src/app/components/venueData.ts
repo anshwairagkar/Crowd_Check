@@ -378,7 +378,21 @@ export const INITIAL_VENUES: Venue[] = [
     openHours: "10:00 - 18:00",
     lastUpdated: "00:00:00"
   },
-  
+  {
+  "id": "venue-026",
+  "name": "Bhawarkuan Square",
+  "category": "Traffic Intersection",
+  "address": "AB Road, Bhawarkuan, Indore, Madhya Pradesh 452001",
+  "coordinates": { "lat": 22.6865, "lng": 75.8722 },
+  "maxCapacity": 2000,
+  "presentCount": 210,
+  "waitingCount": 650,
+  "cameraCount": 16,
+  "floor": "Street Level",
+  "openHours": "00:00 - 24:00",
+  "lastUpdated": "18:45:00"
+  },
+
 ];
 
 // Helper function to check if a venue is currently open
