@@ -35,7 +35,7 @@ export const INITIAL_VENUES: Venue[] = [
     address: '1 Central Plaza, Level 2, New York, NY 10007',
     coordinates: { lat: 40.7128, lng: -74.006 },
     maxCapacity: 320,
-    presentCount: 274,
+    presentCount: 330,
     waitingCount: 38,
     cameraCount: 8,
     floor: 'Level 2',
