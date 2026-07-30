@@ -18,19 +18,27 @@ interface CameraFeed {
   motionLevel: number; // 0-100
 }
 
-const ZONE_NAMES = [
+const BUILDING_ZONES = [
   'Main Entrance', 'Exit Gate', 'Central Hall', 'North Wing',
   'South Wing', 'Elevator Lobby', 'Emergency Exit', 'Parking Level',
   'Rooftop Access', 'Service Corridor', 'VIP Area', 'Loading Bay',
   'Reception Desk', 'Waiting Area', 'Concourse A', 'Concourse B',
 ];
 
+const TRAFFIC_ZONES = [
+  'North Crosswalk', 'South Crosswalk', 'East Crosswalk', 'West Crosswalk',
+  'Northbound Lane', 'Southbound Lane', 'Eastbound Lane', 'Westbound Lane',
+  'Pedestrian Island', 'Left Turn Signal', 'Right Turn Signal', 'Bus Stop Zone'
+];
+
 function generateCameras(venue: Venue, isOpen: boolean): CameraFeed[] {
   const count = venue.cameraCount;
+  // Choose the right list of names based on the category
+  const zones = venue.category === 'Traffic Intersection' ? TRAFFIC_ZONES : BUILDING_ZONES;
+
   return Array.from({ length: count }, (_, i) => {
-    // Figure out the base name and if it has repeated
-    const baseName = ZONE_NAMES[i % ZONE_NAMES.length];
-    const cycle = Math.floor(i / ZONE_NAMES.length);
+    const baseName = zones[i % zones.length];
+    const cycle = Math.floor(i / zones.length);
     const finalZoneName = cycle === 0 ? baseName : `${baseName} ${cycle + 1}`;
 
     return {
