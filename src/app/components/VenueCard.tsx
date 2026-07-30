@@ -71,7 +71,38 @@ export default function VenueCard({ venue, isUpdated }: VenueCardProps) {
   const prevPresent = useRef(venue.presentCount);
   const [trend, setTrend] = useState<'up' | 'down' | 'flat'>('flat');
   const [showCCTV, setShowCCTV] = useState(false);
+  
+  // --- TRAFFIC LIGHT STATE ---
+  const [lightStatus, setLightStatus] = useState<'red' | 'yellow' | 'green'>('red');
 
+  // --- TRAFFIC LIGHT SIMULATION LOOP ---
+  useEffect(() => {
+    if (venue.category !== 'Traffic Intersection' || !isOpen) return;
+
+    let timeout: NodeJS.Timeout;
+    
+    const cycleLight = (current: 'red' | 'yellow' | 'green') => {
+      if (current === 'red') {
+        setLightStatus('green');
+        timeout = setTimeout(() => cycleLight('green'), 6000);
+      } else if (current === 'green') {
+        setLightStatus('yellow');
+        timeout = setTimeout(() => cycleLight('yellow'), 2000);
+      } else {
+        setLightStatus('red');
+        timeout = setTimeout(() => cycleLight('red'), 6000);
+      }
+    };
+
+    const states: ('red' | 'yellow' | 'green')[] = ['red', 'yellow', 'green'];
+    const initial = states[Math.floor(Math.random() * states.length)];
+    setLightStatus(initial);
+    cycleLight(initial);
+
+    return () => clearTimeout(timeout);
+  }, [venue.category, isOpen]);
+
+  // --- TREND ARROWS ---
   useEffect(() => {
     if (venue.presentCount > prevPresent.current) setTrend('up');
     else if (venue.presentCount < prevPresent.current) setTrend('down');
@@ -146,9 +177,30 @@ export default function VenueCard({ venue, isUpdated }: VenueCardProps) {
               </div>
             </div>
 
-            {/* Density badge */}
+            {/* Density badge / Traffic Light */}
             <div className="flex flex-col items-end gap-2 flex-shrink-0">
-              {isOpen ? (
+              {!isOpen ? (
+                <span
+                  className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold border"
+                  style={{
+                    background: 'rgba(255,255,255,0.05)',
+                    borderColor: 'var(--border)',
+                    color: 'var(--muted-foreground)',
+                  }}
+                >
+                  Closed
+                </span>
+              ) : venue.category === 'Traffic Intersection' ? (
+                <div
+                  className="flex items-center gap-1.5 px-2.5 py-1 rounded-full border"
+                  style={{ background: 'var(--surface-3)', borderColor: 'var(--border)' }}
+                  aria-label={`Traffic Light: ${lightStatus}`}
+                >
+                  <div className="w-2 h-2 rounded-full transition-colors duration-300" style={{ background: lightStatus === 'red' ? '#ef4444' : 'rgba(239,68,68,0.2)', boxShadow: lightStatus === 'red' ? '0 0 8px #ef4444' : 'none' }} />
+                  <div className="w-2 h-2 rounded-full transition-colors duration-300" style={{ background: lightStatus === 'yellow' ? '#facc15' : 'rgba(250,204,21,0.2)', boxShadow: lightStatus === 'yellow' ? '0 0 8px #facc15' : 'none' }} />
+                  <div className="w-2 h-2 rounded-full transition-colors duration-300" style={{ background: lightStatus === 'green' ? '#22c55e' : 'rgba(34,197,94,0.2)', boxShadow: lightStatus === 'green' ? '0 0 8px #22c55e' : 'none' }} />
+                </div>
+              ) : (
                 <span
                   className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold border"
                   style={{
@@ -166,17 +218,6 @@ export default function VenueCard({ venue, isUpdated }: VenueCardProps) {
                     }}
                   />
                   {config.label}
-                </span>
-              ) : (
-                <span
-                  className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold border"
-                  style={{
-                    background: 'rgba(255,255,255,0.05)',
-                    borderColor: 'var(--border)',
-                    color: 'var(--muted-foreground)',
-                  }}
-                >
-                  Closed
                 </span>
               )}
             </div>
