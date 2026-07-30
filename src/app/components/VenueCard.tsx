@@ -234,7 +234,7 @@ export default function VenueCard({ venue, isUpdated }: VenueCardProps) {
             <OccupancyRing percent={pct} level={level} size={80} />
 
             <div className="flex-1 space-y-2">
-              {/* People inside */}
+              {/* People inside / crossing */}
               <div
                 className="flex items-center justify-between p-2.5 rounded-xl"
                 style={{ background: 'var(--surface-3)' }}
@@ -242,7 +242,7 @@ export default function VenueCard({ venue, isUpdated }: VenueCardProps) {
                 <div className="flex items-center gap-2">
                   <Users size={14} style={{ color: config.textColor }} />
                   <span className="text-xs font-medium" style={{ color: 'var(--muted-foreground)' }}>
-                    Inside
+                    {venue.category === 'Traffic Intersection' ? 'Crossing' : 'Inside'}
                   </span>
                 </div>
                 <div className="flex items-center gap-1.5">
@@ -274,7 +274,7 @@ export default function VenueCard({ venue, isUpdated }: VenueCardProps) {
             </div>
           </div>
 
-          {/* Waiting count */}
+          {/* Waiting count / Traffic queue */}
           <div
             className="flex items-center justify-between p-3 rounded-xl mb-3"
             style={{
@@ -288,7 +288,7 @@ export default function VenueCard({ venue, isUpdated }: VenueCardProps) {
                 style={{ color: venue.waitingCount > 0 ? 'var(--density-medium)' : 'var(--muted-foreground)' }}
               />
               <span className="text-xs font-medium" style={{ color: 'var(--muted-foreground)' }}>
-                Waiting Outside
+                {venue.category === 'Traffic Intersection' ? 'Waiting at Light' : 'Waiting Outside'}
               </span>
             </div>
             <div className="flex items-center gap-2">
@@ -303,7 +303,7 @@ export default function VenueCard({ venue, isUpdated }: VenueCardProps) {
                   className="text-xs px-1.5 py-0.5 rounded font-medium"
                   style={{ background: 'rgba(245,158,11,0.12)', color: 'var(--density-medium)' }}
                 >
-                  queue
+                  {venue.category === 'Traffic Intersection' ? 'stopped' : 'queue'}
                 </span>
               )}
             </div>
