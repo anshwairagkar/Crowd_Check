@@ -147,7 +147,7 @@ export const INITIAL_VENUES: Venue[] = [
     address: "Sarafa Bazar, Rajwada, Indore, Madhya Pradesh 452002",
     coordinates: { "lat": 22.7196, "lng": 75.8537 },
     maxCapacity: 6000,
-    presentCount: 2400,
+    presentCount: 6000,
     waitingCount: 0,
     cameraCount: 48,
     floor: "Ground Floor",
