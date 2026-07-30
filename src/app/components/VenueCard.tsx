@@ -84,13 +84,13 @@ export default function VenueCard({ venue, isUpdated }: VenueCardProps) {
     const cycleLight = (current: 'red' | 'yellow' | 'green') => {
       if (current === 'red') {
         setLightStatus('green');
-        timeout = setTimeout(() => cycleLight('green'), 6000);
+        timeout = setTimeout(() => cycleLight('green'), 60000); // Green for 1 minute
       } else if (current === 'green') {
         setLightStatus('yellow');
-        timeout = setTimeout(() => cycleLight('yellow'), 2000);
+        timeout = setTimeout(() => cycleLight('yellow'), 5000); // Yellow for 5 seconds
       } else {
         setLightStatus('red');
-        timeout = setTimeout(() => cycleLight('red'), 6000);
+        timeout = setTimeout(() => cycleLight('red'), 60000); // Red for 1 minute
       }
     };
 
@@ -162,13 +162,29 @@ export default function VenueCard({ venue, isUpdated }: VenueCardProps) {
                   {venue.category}
                 </p>
               </div>
-              <h3
-                className="text-base font-semibold leading-snug"
-                style={{ color: 'var(--foreground)' }}
-                title={venue.name}
-              >
-                {venue.name}
-              </h3>
+              
+              {/* Title and Traffic Light Container */}
+              <div className="flex items-center gap-3">
+                <h3
+                  className="text-base font-semibold leading-snug"
+                  style={{ color: 'var(--foreground)' }}
+                  title={venue.name}
+                >
+                  {venue.name}
+                </h3>
+                {isOpen && venue.category === 'Traffic Intersection' && (
+                  <div
+                    className="flex flex-col items-center justify-between py-1.5 px-1 rounded-full border shadow-inner"
+                    style={{ background: 'rgba(0,0,0,0.3)', borderColor: 'var(--border)', height: '44px', width: '18px' }}
+                    aria-label={`Traffic Light: ${lightStatus}`}
+                  >
+                    <div className="w-2 h-2 rounded-full transition-colors duration-300" style={{ background: lightStatus === 'red' ? '#ef4444' : 'rgba(239,68,68,0.15)', boxShadow: lightStatus === 'red' ? '0 0 8px #ef4444' : 'none' }} />
+                    <div className="w-2 h-2 rounded-full transition-colors duration-300" style={{ background: lightStatus === 'yellow' ? '#facc15' : 'rgba(250,204,21,0.15)', boxShadow: lightStatus === 'yellow' ? '0 0 8px #facc15' : 'none' }} />
+                    <div className="w-2 h-2 rounded-full transition-colors duration-300" style={{ background: lightStatus === 'green' ? '#22c55e' : 'rgba(34,197,94,0.15)', boxShadow: lightStatus === 'green' ? '0 0 8px #22c55e' : 'none' }} />
+                  </div>
+                )}
+              </div>
+              
               <div className="flex items-center gap-1 mt-1">
                 <MapPin size={11} style={{ color: 'var(--muted-foreground)' }} className="flex-shrink-0" />
                 <p className="text-xs truncate" style={{ color: 'var(--muted-foreground)' }}>
@@ -177,7 +193,7 @@ export default function VenueCard({ venue, isUpdated }: VenueCardProps) {
               </div>
             </div>
 
-            {/* Density badge / Traffic Light */}
+            {/* Density badge */}
             <div className="flex flex-col items-end gap-2 flex-shrink-0">
               {!isOpen ? (
                 <span
@@ -190,16 +206,6 @@ export default function VenueCard({ venue, isUpdated }: VenueCardProps) {
                 >
                   Closed
                 </span>
-              ) : venue.category === 'Traffic Intersection' ? (
-                <div
-                  className="flex items-center gap-1.5 px-2.5 py-1 rounded-full border"
-                  style={{ background: 'var(--surface-3)', borderColor: 'var(--border)' }}
-                  aria-label={`Traffic Light: ${lightStatus}`}
-                >
-                  <div className="w-2 h-2 rounded-full transition-colors duration-300" style={{ background: lightStatus === 'red' ? '#ef4444' : 'rgba(239,68,68,0.2)', boxShadow: lightStatus === 'red' ? '0 0 8px #ef4444' : 'none' }} />
-                  <div className="w-2 h-2 rounded-full transition-colors duration-300" style={{ background: lightStatus === 'yellow' ? '#facc15' : 'rgba(250,204,21,0.2)', boxShadow: lightStatus === 'yellow' ? '0 0 8px #facc15' : 'none' }} />
-                  <div className="w-2 h-2 rounded-full transition-colors duration-300" style={{ background: lightStatus === 'green' ? '#22c55e' : 'rgba(34,197,94,0.2)', boxShadow: lightStatus === 'green' ? '0 0 8px #22c55e' : 'none' }} />
-                </div>
               ) : (
                 <span
                   className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold border"
