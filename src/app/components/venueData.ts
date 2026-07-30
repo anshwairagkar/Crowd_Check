@@ -151,7 +151,7 @@ export const INITIAL_VENUES: Venue[] = [
     waitingCount: 0,
     cameraCount: 48,
     floor: "Ground Floor",
-    openHours: "20:00 - 02:00",
+    openHours: "11:00 - 02:00",
     lastUpdated: "00:00:00"
   },
   {
