@@ -2,7 +2,8 @@
 
 import React, { useRef, useEffect, useState } from 'react';
 import { getDensityLevel, getOccupancyPercent, Venue, checkIsOpen, DensityLevel } from './venueData';
-import { Users, Clock, MapPin, Building2, TrendingUp, TrendingDown, Minus, Video } from 'lucide-react';
+// Added 'Car' to the lucide-react imports
+import { Users, Clock, MapPin, Building2, TrendingUp, TrendingDown, Minus, Video, Car } from 'lucide-react';
 import OccupancyRing from './OccupancyRing';
 import MiniSparkline from './MiniSparkline';
 import CCTVFeedModal from './CCTVFeedModal';
@@ -63,9 +64,6 @@ const CATEGORY_ICONS: Record<string, React.ElementType> = {
 };
 
 export default function VenueCard({ venue, isUpdated }: VenueCardProps) {
-  const level = getDensityLevel(venue.presentCount, venue.maxCapacity);
-  const pct = getOccupancyPercent(venue.presentCount, venue.maxCapacity);
-  const config = DENSITY_CONFIG[level];
   const isOpen = checkIsOpen(venue.openHours);
 
   const prevPresent = useRef(venue.presentCount);
@@ -74,6 +72,10 @@ export default function VenueCard({ venue, isUpdated }: VenueCardProps) {
   
   // --- TRAFFIC LIGHT STATE ---
   const [lightStatus, setLightStatus] = useState<'red' | 'yellow' | 'green'>('red');
+
+  // --- DYNAMIC TRAFFIC DATA STATE ---
+  const [simPresent, setSimPresent] = useState(venue.presentCount);
+  const [simWaiting, setSimWaiting] = useState(venue.waitingCount);
 
   // --- TRAFFIC LIGHT SIMULATION LOOP ---
   useEffect(() => {
@@ -102,13 +104,46 @@ export default function VenueCard({ venue, isUpdated }: VenueCardProps) {
     return () => clearTimeout(timeout);
   }, [venue.category, isOpen]);
 
+  // --- DYNAMIC DATA SYNC ---
+  // Ties the numbers directly to the traffic light status every time the parent pulses
+  useEffect(() => {
+    if (venue.category !== 'Traffic Intersection' || !isOpen) {
+      setSimPresent(venue.presentCount);
+      setSimWaiting(venue.waitingCount);
+      return;
+    }
+
+    if (lightStatus === 'red') {
+      // Red: High queue, almost no crossing
+      setSimPresent(Math.floor(Math.random() * 20) + 10); 
+      setSimWaiting(Math.floor(Math.random() * 200) + 400); 
+    } else if (lightStatus === 'green') {
+      // Green: High crossing, clearing queue
+      setSimPresent(Math.floor(Math.random() * 150) + 150); 
+      setSimWaiting(Math.floor(Math.random() * 30) + 10); 
+    } else if (lightStatus === 'yellow') {
+      // Yellow: Transitioning
+      setSimPresent(Math.floor(Math.random() * 50) + 80); 
+      setSimWaiting(Math.floor(Math.random() * 100) + 100); 
+    }
+  }, [lightStatus, venue.presentCount, venue.category, isOpen]);
+
+  // Determine final display values based on category
+  const displayPresent = venue.category === 'Traffic Intersection' && isOpen ? simPresent : venue.presentCount;
+  const displayWaiting = venue.category === 'Traffic Intersection' && isOpen ? simWaiting : venue.waitingCount;
+
+  // Calculate density graphics dynamically based on final display values
+  const level = getDensityLevel(displayPresent, venue.maxCapacity);
+  const pct = getOccupancyPercent(displayPresent, venue.maxCapacity);
+  const config = DENSITY_CONFIG[level];
+
   // --- TREND ARROWS ---
   useEffect(() => {
-    if (venue.presentCount > prevPresent.current) setTrend('up');
-    else if (venue.presentCount < prevPresent.current) setTrend('down');
+    if (displayPresent > prevPresent.current) setTrend('up');
+    else if (displayPresent < prevPresent.current) setTrend('down');
     else setTrend('flat');
-    prevPresent.current = venue.presentCount;
-  }, [venue.presentCount]);
+    prevPresent.current = displayPresent;
+  }, [displayPresent]);
 
   const TrendIcon = trend === 'up' ? TrendingUp : trend === 'down' ? TrendingDown : Minus;
   const trendColor = trend === 'up' ? 'var(--density-high)' : trend === 'down' ? 'var(--density-low)' : 'var(--muted-foreground)';
@@ -234,13 +269,17 @@ export default function VenueCard({ venue, isUpdated }: VenueCardProps) {
             <OccupancyRing percent={pct} level={level} size={80} />
 
             <div className="flex-1 space-y-2">
-              {/* People inside / crossing */}
+              {/* People / Vehicles inside/crossing */}
               <div
                 className="flex items-center justify-between p-2.5 rounded-xl"
                 style={{ background: 'var(--surface-3)' }}
               >
                 <div className="flex items-center gap-2">
-                  <Users size={14} style={{ color: config.textColor }} />
+                  {venue.category === 'Traffic Intersection' ? (
+                    <Car size={14} style={{ color: config.textColor }} />
+                  ) : (
+                    <Users size={14} style={{ color: config.textColor }} />
+                  )}
                   <span className="text-xs font-medium" style={{ color: 'var(--muted-foreground)' }}>
                     {venue.category === 'Traffic Intersection' ? 'Crossing' : 'Inside'}
                   </span>
@@ -250,7 +289,7 @@ export default function VenueCard({ venue, isUpdated }: VenueCardProps) {
                     className={`text-base font-bold text-tabular ${isUpdated ? 'number-flash' : ''}`}
                     style={{ color: 'var(--foreground)' }}
                   >
-                    {venue.presentCount.toLocaleString()}
+                    {displayPresent.toLocaleString()}
                   </span>
                   <TrendIcon size={12} style={{ color: trendColor }} />
                 </div>
@@ -278,14 +317,14 @@ export default function VenueCard({ venue, isUpdated }: VenueCardProps) {
           <div
             className="flex items-center justify-between p-3 rounded-xl mb-3"
             style={{
-              background: venue.waitingCount > 0 ? 'rgba(245,158,11,0.06)' : 'var(--surface-3)',
-              border: `1px solid ${venue.waitingCount > 0 ? 'rgba(245,158,11,0.15)' : 'transparent'}`,
+              background: displayWaiting > 0 ? 'rgba(245,158,11,0.06)' : 'var(--surface-3)',
+              border: `1px solid ${displayWaiting > 0 ? 'rgba(245,158,11,0.15)' : 'transparent'}`,
             }}
           >
             <div className="flex items-center gap-2">
               <Clock
                 size={14}
-                style={{ color: venue.waitingCount > 0 ? 'var(--density-medium)' : 'var(--muted-foreground)' }}
+                style={{ color: displayWaiting > 0 ? 'var(--density-medium)' : 'var(--muted-foreground)' }}
               />
               <span className="text-xs font-medium" style={{ color: 'var(--muted-foreground)' }}>
                 {venue.category === 'Traffic Intersection' ? 'Waiting at Light' : 'Waiting Outside'}
@@ -294,11 +333,11 @@ export default function VenueCard({ venue, isUpdated }: VenueCardProps) {
             <div className="flex items-center gap-2">
               <span
                 className={`text-sm font-bold text-tabular ${isUpdated ? 'number-flash' : ''}`}
-                style={{ color: venue.waitingCount > 0 ? 'var(--density-medium)' : 'var(--muted-foreground)' }}
+                style={{ color: displayWaiting > 0 ? 'var(--density-medium)' : 'var(--muted-foreground)' }}
               >
-                {venue.waitingCount.toLocaleString()}
+                {displayWaiting.toLocaleString()}
               </span>
-              {venue.waitingCount > 0 && (
+              {displayWaiting > 0 && (
                 <span
                   className="text-xs px-1.5 py-0.5 rounded font-medium"
                   style={{ background: 'rgba(245,158,11,0.12)', color: 'var(--density-medium)' }}
@@ -344,7 +383,7 @@ export default function VenueCard({ venue, isUpdated }: VenueCardProps) {
           </div>
 
           {/* Sparkline */}
-          <MiniSparkline venueId={venue.id} presentCount={venue.presentCount} maxCapacity={venue.maxCapacity} />
+          <MiniSparkline venueId={venue.id} presentCount={displayPresent} maxCapacity={venue.maxCapacity} />
 
           {/* Footer */}
           <div
