@@ -2,27 +2,30 @@
 
 import React, { useState } from 'react';
 import AppLogo from '@/components/ui/AppLogo';
-import { Activity, Bell, Settings, Shield, AlertTriangle, X } from 'lucide-react';
+import { Activity, Bell, Settings, Shield, AlertTriangle, X, Lock, EyeOff, Server, SlidersHorizontal } from 'lucide-react';
 import { Venue } from './venueData';
 
 interface DashboardTopbarProps {
-  venues?: Venue[]; // Added to accept live venue data
-  onOpenAlerts?: () => void;
-  onOpenShield?: () => void;
-  onOpenSettings?: () => void;
+  venues?: Venue[];
 }
 
 export default function DashboardTopbar({
-  venues = [], // Default to empty array if not passed
-  onOpenAlerts,
-  onOpenShield,
-  onOpenSettings,
+  venues = [],
 }: DashboardTopbarProps) {
-  // Local state to toggle the custom dropdown window
+  // Local state for all three dropdowns
   const [isAlertsOpen, setIsAlertsOpen] = useState(false);
+  const [isShieldOpen, setIsShieldOpen] = useState(false);
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
 
   // Filter venues mathematically: Present Count / Max Capacity >= 90%
   const overcrowdedVenues = venues.filter(v => (v.presentCount / v.maxCapacity) >= 0.9);
+
+  // Helper to close others when opening one
+  const toggleDropdown = (menu: 'alerts' | 'shield' | 'settings') => {
+    setIsAlertsOpen(menu === 'alerts' ? !isAlertsOpen : false);
+    setIsShieldOpen(menu === 'shield' ? !isShieldOpen : false);
+    setIsSettingsOpen(menu === 'settings' ? !isSettingsOpen : false);
+  };
 
   return (
     <header
@@ -76,15 +79,14 @@ export default function DashboardTopbar({
           {/* Right actions */}
           <div className="flex items-center gap-2">
             
-            {/* Bell / Alerts Button Wrapper */}
+            {/* --- BELL / ALERTS --- */}
             <div className="relative">
               <button
-                onClick={() => setIsAlertsOpen(!isAlertsOpen)}
+                onClick={() => toggleDropdown('alerts')}
                 className="relative p-2 rounded-lg transition-colors duration-150 hover:bg-white/10 active:scale-95 cursor-pointer"
                 aria-label="Alerts"
               >
                 <Bell size={18} style={{ color: 'var(--muted-foreground)' }} />
-                {/* Only show the red dot if there are actual overcrowded venues */}
                 {overcrowdedVenues.length > 0 && (
                   <span
                     className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full"
@@ -93,21 +95,17 @@ export default function DashboardTopbar({
                 )}
               </button>
 
-              {/* NEW ALERTS DROPDOWN WINDOW */}
               {isAlertsOpen && (
                 <div 
                   className="absolute right-0 mt-2 w-80 rounded-xl border shadow-xl z-50 overflow-hidden" 
                   style={{ background: 'var(--surface-1)', borderColor: 'var(--border)' }}
                 >
-                  {/* Dropdown Header */}
                   <div className="flex items-center justify-between px-4 py-3 border-b" style={{ borderColor: 'var(--border)', background: 'var(--surface-2)' }}>
                     <h3 className="text-sm font-semibold" style={{ color: 'var(--foreground)' }}>System Alerts</h3>
                     <button onClick={() => setIsAlertsOpen(false)} className="hover:bg-white/5 p-1 rounded transition-colors">
                       <X size={14} style={{ color: 'var(--muted-foreground)' }}/>
                     </button>
                   </div>
-                  
-                  {/* Dropdown Content */}
                   <div className="max-h-80 overflow-y-auto p-2 space-y-1">
                     {overcrowdedVenues.length === 0 ? (
                       <div className="p-4 text-xs text-center" style={{ color: 'var(--muted-foreground)' }}>
@@ -134,23 +132,107 @@ export default function DashboardTopbar({
               )}
             </div>
 
-            {/* Shield / Security Button */}
-            <button
-              onClick={onOpenShield}
-              className="p-2 rounded-lg transition-colors duration-150 hover:bg-white/10 active:scale-95 cursor-pointer"
-              aria-label="Shield status"
-            >
-              <Shield size={18} style={{ color: 'var(--muted-foreground)' }} />
-            </button>
+            {/* --- SHIELD / SECURITY --- */}
+            <div className="relative">
+              <button
+                onClick={() => toggleDropdown('shield')}
+                className="p-2 rounded-lg transition-colors duration-150 hover:bg-white/10 active:scale-95 cursor-pointer"
+                aria-label="Shield status"
+              >
+                <Shield size={18} style={{ color: 'var(--muted-foreground)' }} />
+              </button>
 
-            {/* Settings Button */}
-            <button
-              onClick={onOpenSettings}
-              className="p-2 rounded-lg transition-colors duration-150 hover:bg-white/10 active:scale-95 cursor-pointer"
-              aria-label="Settings"
-            >
-              <Settings size={18} style={{ color: 'var(--muted-foreground)' }} />
-            </button>
+              {isShieldOpen && (
+                <div 
+                  className="absolute right-0 mt-2 w-72 rounded-xl border shadow-xl z-50 overflow-hidden" 
+                  style={{ background: 'var(--surface-1)', borderColor: 'var(--border)' }}
+                >
+                  <div className="flex items-center justify-between px-4 py-3 border-b" style={{ borderColor: 'var(--border)', background: 'var(--surface-2)' }}>
+                    <h3 className="text-sm font-semibold" style={{ color: 'var(--foreground)' }}>Network Security</h3>
+                    <button onClick={() => setIsShieldOpen(false)} className="hover:bg-white/5 p-1 rounded transition-colors">
+                      <X size={14} style={{ color: 'var(--muted-foreground)' }}/>
+                    </button>
+                  </div>
+                  <div className="p-4 space-y-4">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <Lock size={14} style={{ color: '#22c55e' }} />
+                        <span className="text-sm" style={{ color: 'var(--foreground)' }}>AES-256 Encryption</span>
+                      </div>
+                      <span className="text-xs font-medium px-2 py-0.5 rounded-full" style={{ background: 'rgba(34,197,94,0.15)', color: '#22c55e' }}>Active</span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <Server size={14} style={{ color: '#22c55e' }} />
+                        <span className="text-sm" style={{ color: 'var(--foreground)' }}>Mainframe Uplink</span>
+                      </div>
+                      <span className="text-xs font-medium px-2 py-0.5 rounded-full" style={{ background: 'rgba(34,197,94,0.15)', color: '#22c55e' }}>Secure</span>
+                    </div>
+                    <div className="pt-3 border-t" style={{ borderColor: 'var(--border)' }}>
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <EyeOff size={14} style={{ color: 'var(--primary)' }} />
+                          <span className="text-sm" style={{ color: 'var(--foreground)' }}>Privacy Masking</span>
+                        </div>
+                        {/* Mock Toggle Switch */}
+                        <div className="w-8 h-4 rounded-full flex items-center p-0.5 cursor-pointer" style={{ background: 'var(--primary)' }}>
+                          <div className="w-3 h-3 rounded-full bg-white transform translate-x-4"></div>
+                        </div>
+                      </div>
+                      <p className="text-xs mt-2" style={{ color: 'var(--muted-foreground)' }}>AI automatically blurs faces in CCTV feeds to protect identity.</p>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* --- SETTINGS / PREFERENCES --- */}
+            <div className="relative">
+              <button
+                onClick={() => toggleDropdown('settings')}
+                className="p-2 rounded-lg transition-colors duration-150 hover:bg-white/10 active:scale-95 cursor-pointer"
+                aria-label="Settings"
+              >
+                <Settings size={18} style={{ color: 'var(--muted-foreground)' }} />
+              </button>
+
+              {isSettingsOpen && (
+                <div 
+                  className="absolute right-0 mt-2 w-64 rounded-xl border shadow-xl z-50 overflow-hidden" 
+                  style={{ background: 'var(--surface-1)', borderColor: 'var(--border)' }}
+                >
+                  <div className="flex items-center justify-between px-4 py-3 border-b" style={{ borderColor: 'var(--border)', background: 'var(--surface-2)' }}>
+                    <h3 className="text-sm font-semibold" style={{ color: 'var(--foreground)' }}>Preferences</h3>
+                    <button onClick={() => setIsSettingsOpen(false)} className="hover:bg-white/5 p-1 rounded transition-colors">
+                      <X size={14} style={{ color: 'var(--muted-foreground)' }}/>
+                    </button>
+                  </div>
+                  <div className="p-4 space-y-4">
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm" style={{ color: 'var(--foreground)' }}>Alert Threshold</span>
+                        <span className="text-xs font-mono" style={{ color: 'var(--primary)' }}>90%</span>
+                      </div>
+                      <div className="w-full h-1.5 rounded-full" style={{ background: 'var(--surface-3)' }}>
+                        <div className="w-[90%] h-full rounded-full" style={{ background: 'var(--primary)' }}></div>
+                      </div>
+                    </div>
+                    
+                    <div className="space-y-2 pt-2">
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm" style={{ color: 'var(--foreground)' }}>Refresh Rate</span>
+                        <span className="text-xs font-mono" style={{ color: 'var(--primary)' }}>3s</span>
+                      </div>
+                      <div className="flex gap-2">
+                        <button className="flex-1 py-1 text-xs rounded border" style={{ borderColor: 'var(--border)', color: 'var(--muted-foreground)' }}>1s</button>
+                        <button className="flex-1 py-1 text-xs rounded border" style={{ borderColor: 'var(--primary)', color: 'var(--primary)', background: 'rgba(34,211,238,0.1)' }}>3s</button>
+                        <button className="flex-1 py-1 text-xs rounded border" style={{ borderColor: 'var(--border)', color: 'var(--muted-foreground)' }}>10s</button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
             
             {/* User Profile */}
             <div
