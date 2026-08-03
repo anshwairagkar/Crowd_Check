@@ -39,6 +39,7 @@ export default function DashboardClient() {
   const [showAdmin, setShowAdmin] = useState(false);
   const [filterHighRisk, setFilterHighRisk] = useState(false);
   const prevHighRisk = useRef<string[]>([]);
+  
   const [settings, setSettings] = useState<AppSettings>({
     predictive: false,
     weather: true,
@@ -54,7 +55,7 @@ export default function DashboardClient() {
     setLastRefresh(new Date().toLocaleTimeString('en-US', { hour12: false }));
   }, []);
 
-  // Persist venues to localStorage whenever they change (but not during simulation ticks)
+  // Persist venues to localStorage whenever they change
   const saveRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const persistVenues = useCallback((updated: Venue[]) => {
     if (saveRef.current) clearTimeout(saveRef.current);
@@ -71,12 +72,10 @@ export default function DashboardClient() {
           const now = new Date().toLocaleTimeString('en-US', { hour12: false });
           const isOpen = checkIsOpen(v.openHours);
 
-          // IF CLOSED: Force everything to 0
           if (!isOpen) {
             return { ...v, presentCount: 0, waitingCount: 0, lastUpdated: now };
           }
 
-          // IF OPEN: Run the normal AI simulation
           const newPresent = fluctuateCount(v.presentCount, v.maxCapacity, 18);
           const newWaiting = fluctuateCount(v.waitingCount, Math.floor(v.maxCapacity * 0.3), 8);
           return { ...v, presentCount: newPresent, waitingCount: newWaiting, lastUpdated: now };
@@ -142,7 +141,25 @@ export default function DashboardClient() {
     });
   }, []);
 
-  const filteredVenues = venues.filter(v => {
+  // --- NEW: AI ENGINE DATA MODIFIER ---
+  // We apply the mathematical settings before distributing the data to the rest of the app
+  const simulatedVenues = venues.map(venue => {
+    let simulatedPresent = venue.presentCount;
+
+    // Predictive: Add 15% to simulate future crowd growth
+    if (settings.predictive) {
+      simulatedPresent = Math.min(venue.maxCapacity, Math.floor(simulatedPresent * 1.15));
+    }
+
+    // Weather: If active, randomly drop outdoor venue counts by 30%
+    if (settings.weather && venue.category === 'Traffic Intersection') {
+      simulatedPresent = Math.floor(simulatedPresent * 0.7);
+    }
+
+    return { ...venue, presentCount: simulatedPresent };
+  });
+
+  const filteredVenues = simulatedVenues.filter(v => {
     const matchesSearch =
       v.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       v.address.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -155,9 +172,9 @@ export default function DashboardClient() {
     return matchesSearch && matchesCategory && matchesHighRisk;
   });
 
-  const categories = ['ALL', ...Array.from(new Set(venues.map(v => v.category)))];
+  const categories = ['ALL', ...Array.from(new Set(simulatedVenues.map(v => v.category)))];
 
-  const highRiskVenues = venues.filter(v => {
+  const highRiskVenues = simulatedVenues.filter(v => {
     const level = getDensityLevel(v.presentCount, v.maxCapacity);
     return level === 'HIGH' || level === 'CRITICAL';
   });
@@ -168,10 +185,12 @@ export default function DashboardClient() {
   }, []);
 
   return (
-    <>
+    // Wrap the entire app in a div that receives the theme classes
+    <div className={`min-h-screen ${settings.colorblind ? 'colorblind-theme' : ''} ${settings.nightVision ? 'night-vision-theme' : ''}`}>
       <DashboardTopbar 
-        venues={venues}
+        venues={simulatedVenues}
         settings={settings}
+        onUpdateSettings={setSettings} // This wires up the buttons!
         onOpenAlerts={() => toast.info('System Alerts', { description: 'Viewing recent notifications.' })}
         onOpenShield={() => toast.success('Security Status', { description: 'All camera encryption feeds active.' })}
         onOpenSettings={() => setShowAdmin(true)}
@@ -191,7 +210,7 @@ export default function DashboardClient() {
 
       {showAdmin && (
         <AdminPanel
-          venues={venues}
+          venues={venues} // Admin uses raw data, not simulated
           onAdd={handleAddVenue}
           onUpdate={handleUpdateVenue}
           onDelete={handleDeleteVenue}
@@ -201,7 +220,7 @@ export default function DashboardClient() {
 
       <main className="max-w-screen-2xl mx-auto px-4 lg:px-8 xl:px-10 2xl:px-16 py-6 space-y-6">
         {/* Live ticker */}
-        <LiveTickerBar venues={venues} lastRefresh={lastRefresh} />
+        <LiveTickerBar venues={simulatedVenues} lastRefresh={lastRefresh} />
 
         {/* Alert banner */}
         {highRiskVenues.length > 0 && <AlertBanner venues={highRiskVenues} />}
@@ -218,12 +237,12 @@ export default function DashboardClient() {
           refreshInterval={refreshInterval}
           onRefreshIntervalChange={setRefreshInterval}
           onGPSLocate={handleGPSLocate}
-          venues={venues}
+          venues={simulatedVenues}
         />
 
         {/* Summary KPI row */}
         <SummaryKPIRow
-          venues={venues}
+          venues={simulatedVenues}
           onVenuesAtRiskClick={() => setFilterHighRisk(prev => !prev)}
         />
 
@@ -267,8 +286,9 @@ export default function DashboardClient() {
           venues={filteredVenues}
           changedIds={changedIds}
           searchQuery={searchQuery}
+          density={settings.gridDensity} // Passes the grid setting to the component!
         />
       </main>
-    </>
+    </div>
   );
 }
