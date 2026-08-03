@@ -187,10 +187,30 @@ export default function DashboardClient() {
   return (
     // Wrap the entire app in a div that receives the theme classes
     <div className={`min-h-screen ${settings.colorblind ? 'colorblind-theme' : ''} ${settings.nightVision ? 'night-vision-theme' : ''}`}>
+      
+      {/* 🔴 INJECTED THEME FILTERS 🔴 */}
+      <style>{`
+        /* Shifts Red/Green palette to Orange/Blue by rotating the color wheel 50 degrees */
+        .colorblind-theme {
+          filter: hue-rotate(50deg) saturate(1.5) !important;
+        }
+        
+        /* Forces a deep blue, high-contrast tactical dark mode */
+        .night-vision-theme {
+          filter: grayscale(100%) sepia(100%) hue-rotate(180deg) saturate(300%) brightness(45%) contrast(120%) !important;
+          background-color: #030712 !important;
+        }
+        
+        /* Smooth transition for the effect */
+        .min-h-screen {
+          transition: filter 0.5s ease, background-color 0.5s ease;
+        }
+      `}</style>
+
       <DashboardTopbar 
         venues={simulatedVenues}
         settings={settings}
-        onUpdateSettings={setSettings} // This wires up the buttons!
+        onUpdateSettings={setSettings}
         onOpenAlerts={() => toast.info('System Alerts', { description: 'Viewing recent notifications.' })}
         onOpenShield={() => toast.success('Security Status', { description: 'All camera encryption feeds active.' })}
         onOpenSettings={() => setShowAdmin(true)}
