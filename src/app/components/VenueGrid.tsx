@@ -9,9 +9,11 @@ interface VenueGridProps {
   venues: Venue[];
   changedIds: Set<string>;
   searchQuery: string;
+  density?: 'comfortable' | 'compact'; // 1. Added density prop
 }
 
-export default function VenueGrid({ venues, changedIds, searchQuery }: VenueGridProps) {
+// 2. Added density with a default value of 'comfortable'
+export default function VenueGrid({ venues, changedIds, searchQuery, density = 'comfortable' }: VenueGridProps) {
   if (venues.length === 0) {
     return (
       <div
@@ -40,6 +42,11 @@ export default function VenueGrid({ venues, changedIds, searchQuery }: VenueGrid
     );
   }
 
+  // 3. Dynamic grid classes based on the current setting
+  const gridClass = density === 'compact'
+    ? "grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3"
+    : "grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-3 gap-4";
+
   return (
     <div>
       <div className="flex items-center justify-between mb-4">
@@ -57,7 +64,8 @@ export default function VenueGrid({ venues, changedIds, searchQuery }: VenueGrid
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-3 gap-4">
+      {/* 4. Applied the dynamic grid class here */}
+      <div className={gridClass}>
         {venues.map(venue => (
           <VenueCard
             key={venue.id}
