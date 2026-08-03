@@ -2,7 +2,11 @@
 
 import React, { useState } from 'react';
 import AppLogo from '@/components/ui/AppLogo';
-import { Activity, Bell, Settings, Shield, AlertTriangle, X, Lock, EyeOff, Server, SlidersHorizontal } from 'lucide-react';
+import { 
+  Activity, Bell, Settings, Shield, AlertTriangle, X, 
+  Lock, EyeOff, Server, BrainCircuit, Eye, CloudRain, 
+  Gauge, LayoutGrid, Moon 
+} from 'lucide-react';
 import { Venue } from './venueData';
 
 interface DashboardTopbarProps {
@@ -12,10 +16,19 @@ interface DashboardTopbarProps {
 export default function DashboardTopbar({
   venues = [],
 }: DashboardTopbarProps) {
-  // Local state for all three dropdowns
+  // Main dropdown toggles
   const [isAlertsOpen, setIsAlertsOpen] = useState(false);
   const [isShieldOpen, setIsShieldOpen] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+
+  // Settings Tabs and UI Mock States
+  const [settingsTab, setSettingsTab] = useState<'ai' | 'accessibility'>('ai');
+  const [predictive, setPredictive] = useState(false);
+  const [weather, setWeather] = useState(true);
+  const [sensitivity, setSensitivity] = useState<'low' | 'normal' | 'high'>('normal');
+  const [colorblind, setColorblind] = useState(false);
+  const [nightVision, setNightVision] = useState(false);
+  const [gridDensity, setGridDensity] = useState<'comfortable' | 'compact'>('comfortable');
 
   // Filter venues mathematically: Present Count / Max Capacity >= 90%
   const overcrowdedVenues = venues.filter(v => (v.presentCount / v.maxCapacity) >= 0.9);
@@ -174,19 +187,18 @@ export default function DashboardTopbar({
                           <EyeOff size={14} style={{ color: 'var(--primary)' }} />
                           <span className="text-sm" style={{ color: 'var(--foreground)' }}>Privacy Masking</span>
                         </div>
-                        {/* Mock Toggle Switch */}
                         <div className="w-8 h-4 rounded-full flex items-center p-0.5 cursor-pointer" style={{ background: 'var(--primary)' }}>
                           <div className="w-3 h-3 rounded-full bg-white transform translate-x-4"></div>
                         </div>
                       </div>
-                      <p className="text-xs mt-2" style={{ color: 'var(--muted-foreground)' }}>AI automatically transforming human subjects into dynamic data points in CCTV feeds to protect identity.</p>
+                      <p className="text-xs mt-2" style={{ color: 'var(--muted-foreground)' }}>AI automatically blurs faces in CCTV feeds to protect identity.</p>
                     </div>
                   </div>
                 </div>
               )}
             </div>
 
-            {/* --- SETTINGS / PREFERENCES --- */}
+            {/* --- SETTINGS / PREFERENCES (NEW TABBED WINDOW) --- */}
             <div className="relative">
               <button
                 onClick={() => toggleDropdown('settings')}
@@ -198,37 +210,130 @@ export default function DashboardTopbar({
 
               {isSettingsOpen && (
                 <div 
-                  className="absolute right-0 mt-2 w-64 rounded-xl border shadow-xl z-50 overflow-hidden" 
+                  className="absolute right-0 mt-2 w-[340px] rounded-xl border shadow-xl z-50 overflow-hidden" 
                   style={{ background: 'var(--surface-1)', borderColor: 'var(--border)' }}
                 >
                   <div className="flex items-center justify-between px-4 py-3 border-b" style={{ borderColor: 'var(--border)', background: 'var(--surface-2)' }}>
-                    <h3 className="text-sm font-semibold" style={{ color: 'var(--foreground)' }}>Preferences</h3>
+                    <h3 className="text-sm font-semibold" style={{ color: 'var(--foreground)' }}>System Preferences</h3>
                     <button onClick={() => setIsSettingsOpen(false)} className="hover:bg-white/5 p-1 rounded transition-colors">
                       <X size={14} style={{ color: 'var(--muted-foreground)' }}/>
                     </button>
                   </div>
-                  <div className="p-4 space-y-4">
-                    <div className="space-y-2">
-                      <div className="flex items-center justify-between">
-                        <span className="text-sm" style={{ color: 'var(--foreground)' }}>Alert Threshold</span>
-                        <span className="text-xs font-mono" style={{ color: 'var(--primary)' }}>90%</span>
-                      </div>
-                      <div className="w-full h-1.5 rounded-full" style={{ background: 'var(--surface-3)' }}>
-                        <div className="w-[90%] h-full rounded-full" style={{ background: 'var(--primary)' }}></div>
-                      </div>
-                    </div>
+                  
+                  {/* Tabs Header */}
+                  <div className="flex border-b" style={{ borderColor: 'var(--border)', background: 'var(--surface-2)' }}>
+                    <button 
+                      onClick={() => setSettingsTab('ai')}
+                      className={`flex-1 py-2.5 text-xs font-semibold flex items-center justify-center gap-2 transition-colors ${settingsTab === 'ai' ? 'border-b-2' : ''}`}
+                      style={{ 
+                        borderColor: settingsTab === 'ai' ? 'var(--primary)' : 'transparent',
+                        color: settingsTab === 'ai' ? 'var(--primary)' : 'var(--muted-foreground)'
+                      }}
+                    >
+                      <BrainCircuit size={14} />
+                      AI Engine
+                    </button>
+                    <button 
+                      onClick={() => setSettingsTab('accessibility')}
+                      className={`flex-1 py-2.5 text-xs font-semibold flex items-center justify-center gap-2 transition-colors ${settingsTab === 'accessibility' ? 'border-b-2' : ''}`}
+                      style={{ 
+                        borderColor: settingsTab === 'accessibility' ? 'var(--primary)' : 'transparent',
+                        color: settingsTab === 'accessibility' ? 'var(--primary)' : 'var(--muted-foreground)'
+                      }}
+                    >
+                      <Eye size={14} />
+                      Control Room
+                    </button>
+                  </div>
+
+                  {/* Tab Content */}
+                  <div className="p-4 space-y-5">
                     
-                    <div className="space-y-2 pt-2">
-                      <div className="flex items-center justify-between">
-                        <span className="text-sm" style={{ color: 'var(--foreground)' }}>Refresh Rate</span>
-                        <span className="text-xs font-mono" style={{ color: 'var(--primary)' }}>3s</span>
-                      </div>
-                      <div className="flex gap-2">
-                        <button className="flex-1 py-1 text-xs rounded border" style={{ borderColor: 'var(--border)', color: 'var(--muted-foreground)' }}>1s</button>
-                        <button className="flex-1 py-1 text-xs rounded border" style={{ borderColor: 'var(--primary)', color: 'var(--primary)', background: 'rgba(34,211,238,0.1)' }}>3s</button>
-                        <button className="flex-1 py-1 text-xs rounded border" style={{ borderColor: 'var(--border)', color: 'var(--muted-foreground)' }}>10s</button>
-                      </div>
-                    </div>
+                    {/* AI ENGINE TAB */}
+                    {settingsTab === 'ai' && (
+                      <>
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <div className="flex items-center gap-2">
+                              <Activity size={14} style={{ color: 'var(--foreground)' }} />
+                              <span className="text-sm font-medium" style={{ color: 'var(--foreground)' }}>Predictive Forecasting</span>
+                            </div>
+                            <p className="text-[10px] mt-0.5" style={{ color: 'var(--muted-foreground)' }}>Shift timeline +30 mins based on trends</p>
+                          </div>
+                          <div onClick={() => setPredictive(!predictive)} className="w-8 h-4 rounded-full flex items-center p-0.5 cursor-pointer transition-colors" style={{ background: predictive ? 'var(--primary)' : 'var(--surface-3)' }}>
+                            <div className={`w-3 h-3 rounded-full bg-white transform transition-transform ${predictive ? 'translate-x-4' : ''}`}></div>
+                          </div>
+                        </div>
+
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <div className="flex items-center gap-2">
+                              <CloudRain size={14} style={{ color: 'var(--foreground)' }} />
+                              <span className="text-sm font-medium" style={{ color: 'var(--foreground)' }}>Weather Impact Data</span>
+                            </div>
+                            <p className="text-[10px] mt-0.5" style={{ color: 'var(--muted-foreground)' }}>Factor local climate into predictions</p>
+                          </div>
+                          <div onClick={() => setWeather(!weather)} className="w-8 h-4 rounded-full flex items-center p-0.5 cursor-pointer transition-colors" style={{ background: weather ? 'var(--primary)' : 'var(--surface-3)' }}>
+                            <div className={`w-3 h-3 rounded-full bg-white transform transition-transform ${weather ? 'translate-x-4' : ''}`}></div>
+                          </div>
+                        </div>
+
+                        <div className="space-y-2 pt-2 border-t" style={{ borderColor: 'var(--border)' }}>
+                          <div className="flex items-center gap-2">
+                            <Gauge size={14} style={{ color: 'var(--foreground)' }} />
+                            <span className="text-sm font-medium" style={{ color: 'var(--foreground)' }}>Anomaly Sensitivity</span>
+                          </div>
+                          <div className="flex gap-2">
+                            <button onClick={() => setSensitivity('low')} className="flex-1 py-1.5 text-xs rounded-md border transition-colors" style={{ borderColor: sensitivity === 'low' ? 'var(--primary)' : 'var(--border)', color: sensitivity === 'low' ? 'var(--primary)' : 'var(--muted-foreground)', background: sensitivity === 'low' ? 'rgba(34,211,238,0.1)' : 'transparent' }}>Low</button>
+                            <button onClick={() => setSensitivity('normal')} className="flex-1 py-1.5 text-xs rounded-md border transition-colors" style={{ borderColor: sensitivity === 'normal' ? 'var(--primary)' : 'var(--border)', color: sensitivity === 'normal' ? 'var(--primary)' : 'var(--muted-foreground)', background: sensitivity === 'normal' ? 'rgba(34,211,238,0.1)' : 'transparent' }}>Normal</button>
+                            <button onClick={() => setSensitivity('high')} className="flex-1 py-1.5 text-xs rounded-md border transition-colors" style={{ borderColor: sensitivity === 'high' ? 'var(--primary)' : 'var(--border)', color: sensitivity === 'high' ? 'var(--primary)' : 'var(--muted-foreground)', background: sensitivity === 'high' ? 'rgba(34,211,238,0.1)' : 'transparent' }}>High</button>
+                          </div>
+                        </div>
+                      </>
+                    )}
+
+                    {/* CONTROL ROOM / ACCESSIBILITY TAB */}
+                    {settingsTab === 'accessibility' && (
+                      <>
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <div className="flex items-center gap-2">
+                              <Eye size={14} style={{ color: 'var(--foreground)' }} />
+                              <span className="text-sm font-medium" style={{ color: 'var(--foreground)' }}>Colorblind Mode</span>
+                            </div>
+                            <p className="text-[10px] mt-0.5" style={{ color: 'var(--muted-foreground)' }}>Shift density palette to Blue/Orange</p>
+                          </div>
+                          <div onClick={() => setColorblind(!colorblind)} className="w-8 h-4 rounded-full flex items-center p-0.5 cursor-pointer transition-colors" style={{ background: colorblind ? 'var(--primary)' : 'var(--surface-3)' }}>
+                            <div className={`w-3 h-3 rounded-full bg-white transform transition-transform ${colorblind ? 'translate-x-4' : ''}`}></div>
+                          </div>
+                        </div>
+
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <div className="flex items-center gap-2">
+                              <Moon size={14} style={{ color: 'var(--foreground)' }} />
+                              <span className="text-sm font-medium" style={{ color: 'var(--foreground)' }}>Night Vision UI</span>
+                            </div>
+                            <p className="text-[10px] mt-0.5" style={{ color: 'var(--muted-foreground)' }}>Ultra-dark mode for night shifts</p>
+                          </div>
+                          <div onClick={() => setNightVision(!nightVision)} className="w-8 h-4 rounded-full flex items-center p-0.5 cursor-pointer transition-colors" style={{ background: nightVision ? 'var(--primary)' : 'var(--surface-3)' }}>
+                            <div className={`w-3 h-3 rounded-full bg-white transform transition-transform ${nightVision ? 'translate-x-4' : ''}`}></div>
+                          </div>
+                        </div>
+
+                        <div className="space-y-2 pt-2 border-t" style={{ borderColor: 'var(--border)' }}>
+                          <div className="flex items-center gap-2">
+                            <LayoutGrid size={14} style={{ color: 'var(--foreground)' }} />
+                            <span className="text-sm font-medium" style={{ color: 'var(--foreground)' }}>Grid Density</span>
+                          </div>
+                          <div className="flex gap-2">
+                            <button onClick={() => setGridDensity('comfortable')} className="flex-1 py-1.5 text-xs rounded-md border transition-colors" style={{ borderColor: gridDensity === 'comfortable' ? 'var(--primary)' : 'var(--border)', color: gridDensity === 'comfortable' ? 'var(--primary)' : 'var(--muted-foreground)', background: gridDensity === 'comfortable' ? 'rgba(34,211,238,0.1)' : 'transparent' }}>Comfortable</button>
+                            <button onClick={() => setGridDensity('compact')} className="flex-1 py-1.5 text-xs rounded-md border transition-colors" style={{ borderColor: gridDensity === 'compact' ? 'var(--primary)' : 'var(--border)', color: gridDensity === 'compact' ? 'var(--primary)' : 'var(--muted-foreground)', background: gridDensity === 'compact' ? 'rgba(34,211,238,0.1)' : 'transparent' }}>Compact View</button>
+                          </div>
+                        </div>
+                      </>
+                    )}
+
                   </div>
                 </div>
               )}
