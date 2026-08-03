@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import AppLogo from '@/components/ui/AppLogo';
+import { AppSettings } from './DashboardClient';
 import { 
   Activity, Bell, Settings, Shield, AlertTriangle, X, 
   Lock, EyeOff, Server, BrainCircuit, Eye, CloudRain, 
@@ -15,6 +16,9 @@ interface DashboardTopbarProps {
 
 export default function DashboardTopbar({
   venues = [],
+  venues?: Venue[];
+  settings: AppSettings;
+  onUpdateSettings: (newSettings: AppSettings) => void;
 }: DashboardTopbarProps) {
   // Main dropdown toggles
   const [isAlertsOpen, setIsAlertsOpen] = useState(false);
@@ -23,13 +27,7 @@ export default function DashboardTopbar({
 
   // Settings Tabs and UI Mock States
   const [settingsTab, setSettingsTab] = useState<'ai' | 'accessibility'>('ai');
-  const [predictive, setPredictive] = useState(false);
-  const [weather, setWeather] = useState(true);
-  const [sensitivity, setSensitivity] = useState<'low' | 'normal' | 'high'>('normal');
-  const [colorblind, setColorblind] = useState(false);
-  const [nightVision, setNightVision] = useState(false);
-  const [gridDensity, setGridDensity] = useState<'comfortable' | 'compact'>('comfortable');
-
+  
   // Filter venues mathematically: Present Count / Max Capacity >= 90%
   const overcrowdedVenues = venues.filter(v => (v.presentCount / v.maxCapacity) >= 0.9);
 
