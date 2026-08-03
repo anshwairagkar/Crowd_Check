@@ -13,6 +13,15 @@ import AdminPanel from './AdminPanel';
 import { Settings2 } from 'lucide-react';
 import DashboardTopbar from './DashboardTopbar';
 
+export interface AppSettings {
+  predictive: boolean;
+  weather: boolean;
+  sensitivity: 'low' | 'normal' | 'high';
+  colorblind: boolean;
+  nightVision: boolean;
+  gridDensity: 'comfortable' | 'compact';
+}
+
 function fluctuateCount(current: number, max: number, delta: number): number {
   const noise = Math.floor((Math.random() - 0.45) * delta);
   const next = current + noise;
@@ -30,6 +39,14 @@ export default function DashboardClient() {
   const [showAdmin, setShowAdmin] = useState(false);
   const [filterHighRisk, setFilterHighRisk] = useState(false);
   const prevHighRisk = useRef<string[]>([]);
+  const [settings, setSettings] = useState<AppSettings>({
+    predictive: false,
+    weather: true,
+    sensitivity: 'normal',
+    colorblind: false,
+    nightVision: false,
+    gridDensity: 'comfortable',
+  });
 
   // Load venues from localStorage on mount
   useEffect(() => {
@@ -154,6 +171,7 @@ export default function DashboardClient() {
     <>
       <DashboardTopbar 
         venues={venues}
+        settings={settings}
         onOpenAlerts={() => toast.info('System Alerts', { description: 'Viewing recent notifications.' })}
         onOpenShield={() => toast.success('Security Status', { description: 'All camera encryption feeds active.' })}
         onOpenSettings={() => setShowAdmin(true)}
