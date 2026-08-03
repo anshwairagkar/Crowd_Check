@@ -1,1 +1,15 @@
 @import './tailwind.css';
+
+/* Colorblind Mode: Shifts Red/Amber/Green to high-contrast Blue/Orange */
+.colorblind-theme {
+  --density-high: #ff8c00; 
+  --density-medium: #ffd700; 
+  --density-low: #0077ff; 
+  --density-critical: #ff4500;
+}
+
+/* Night Vision Mode: Instantly forces an ultra-dark blue overlay */
+.night-vision-theme {
+  filter: sepia(100%) hue-rotate(190deg) saturate(250%) brightness(50%) contrast(110%);
+  background-color: #000 !important;
+}
