@@ -10,22 +10,25 @@ import {
 } from 'lucide-react';
 import { Venue } from './venueData';
 
+// 1. Corrected Interface
 interface DashboardTopbarProps {
-  venues?: Venue[];
-}
-
-export default function DashboardTopbar({
-  venues = [],
   venues?: Venue[];
   settings: AppSettings;
   onUpdateSettings: (newSettings: AppSettings) => void;
+}
+
+// 2. Corrected Function Parameters
+export default function DashboardTopbar({
+  venues = [],
+  settings,
+  onUpdateSettings,
 }: DashboardTopbarProps) {
-  // Main dropdown toggles
+  // Main dropdown toggles (These stay local because they just open/close menus)
   const [isAlertsOpen, setIsAlertsOpen] = useState(false);
   const [isShieldOpen, setIsShieldOpen] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
 
-  // Settings Tabs and UI Mock States
+  // Settings Tabs
   const [settingsTab, setSettingsTab] = useState<'ai' | 'accessibility'>('ai');
   
   // Filter venues mathematically: Present Count / Max Capacity >= 90%
@@ -250,6 +253,7 @@ export default function DashboardTopbar({
                     {/* AI ENGINE TAB */}
                     {settingsTab === 'ai' && (
                       <>
+                        {/* 3. Global Setting Applied to Predictive */}
                         <div className="flex items-center justify-between">
                           <div>
                             <div className="flex items-center gap-2">
@@ -258,11 +262,12 @@ export default function DashboardTopbar({
                             </div>
                             <p className="text-[10px] mt-0.5" style={{ color: 'var(--muted-foreground)' }}>Shift timeline +30 mins based on trends</p>
                           </div>
-                          <div onClick={() => setPredictive(!predictive)} className="w-8 h-4 rounded-full flex items-center p-0.5 cursor-pointer transition-colors" style={{ background: predictive ? 'var(--primary)' : 'var(--surface-3)' }}>
-                            <div className={`w-3 h-3 rounded-full bg-white transform transition-transform ${predictive ? 'translate-x-4' : ''}`}></div>
+                          <div onClick={() => onUpdateSettings({ ...settings, predictive: !settings.predictive })} className="w-8 h-4 rounded-full flex items-center p-0.5 cursor-pointer transition-colors" style={{ background: settings.predictive ? 'var(--primary)' : 'var(--surface-3)' }}>
+                            <div className={`w-3 h-3 rounded-full bg-white transform transition-transform ${settings.predictive ? 'translate-x-4' : ''}`}></div>
                           </div>
                         </div>
 
+                        {/* 4. Global Setting Applied to Weather */}
                         <div className="flex items-center justify-between">
                           <div>
                             <div className="flex items-center gap-2">
@@ -271,20 +276,21 @@ export default function DashboardTopbar({
                             </div>
                             <p className="text-[10px] mt-0.5" style={{ color: 'var(--muted-foreground)' }}>Factor local climate into predictions</p>
                           </div>
-                          <div onClick={() => setWeather(!weather)} className="w-8 h-4 rounded-full flex items-center p-0.5 cursor-pointer transition-colors" style={{ background: weather ? 'var(--primary)' : 'var(--surface-3)' }}>
-                            <div className={`w-3 h-3 rounded-full bg-white transform transition-transform ${weather ? 'translate-x-4' : ''}`}></div>
+                          <div onClick={() => onUpdateSettings({ ...settings, weather: !settings.weather })} className="w-8 h-4 rounded-full flex items-center p-0.5 cursor-pointer transition-colors" style={{ background: settings.weather ? 'var(--primary)' : 'var(--surface-3)' }}>
+                            <div className={`w-3 h-3 rounded-full bg-white transform transition-transform ${settings.weather ? 'translate-x-4' : ''}`}></div>
                           </div>
                         </div>
 
+                        {/* 5. Global Setting Applied to Sensitivity */}
                         <div className="space-y-2 pt-2 border-t" style={{ borderColor: 'var(--border)' }}>
                           <div className="flex items-center gap-2">
                             <Gauge size={14} style={{ color: 'var(--foreground)' }} />
                             <span className="text-sm font-medium" style={{ color: 'var(--foreground)' }}>Anomaly Sensitivity</span>
                           </div>
                           <div className="flex gap-2">
-                            <button onClick={() => setSensitivity('low')} className="flex-1 py-1.5 text-xs rounded-md border transition-colors" style={{ borderColor: sensitivity === 'low' ? 'var(--primary)' : 'var(--border)', color: sensitivity === 'low' ? 'var(--primary)' : 'var(--muted-foreground)', background: sensitivity === 'low' ? 'rgba(34,211,238,0.1)' : 'transparent' }}>Low</button>
-                            <button onClick={() => setSensitivity('normal')} className="flex-1 py-1.5 text-xs rounded-md border transition-colors" style={{ borderColor: sensitivity === 'normal' ? 'var(--primary)' : 'var(--border)', color: sensitivity === 'normal' ? 'var(--primary)' : 'var(--muted-foreground)', background: sensitivity === 'normal' ? 'rgba(34,211,238,0.1)' : 'transparent' }}>Normal</button>
-                            <button onClick={() => setSensitivity('high')} className="flex-1 py-1.5 text-xs rounded-md border transition-colors" style={{ borderColor: sensitivity === 'high' ? 'var(--primary)' : 'var(--border)', color: sensitivity === 'high' ? 'var(--primary)' : 'var(--muted-foreground)', background: sensitivity === 'high' ? 'rgba(34,211,238,0.1)' : 'transparent' }}>High</button>
+                            <button onClick={() => onUpdateSettings({ ...settings, sensitivity: 'low' })} className="flex-1 py-1.5 text-xs rounded-md border transition-colors" style={{ borderColor: settings.sensitivity === 'low' ? 'var(--primary)' : 'var(--border)', color: settings.sensitivity === 'low' ? 'var(--primary)' : 'var(--muted-foreground)', background: settings.sensitivity === 'low' ? 'rgba(34,211,238,0.1)' : 'transparent' }}>Low</button>
+                            <button onClick={() => onUpdateSettings({ ...settings, sensitivity: 'normal' })} className="flex-1 py-1.5 text-xs rounded-md border transition-colors" style={{ borderColor: settings.sensitivity === 'normal' ? 'var(--primary)' : 'var(--border)', color: settings.sensitivity === 'normal' ? 'var(--primary)' : 'var(--muted-foreground)', background: settings.sensitivity === 'normal' ? 'rgba(34,211,238,0.1)' : 'transparent' }}>Normal</button>
+                            <button onClick={() => onUpdateSettings({ ...settings, sensitivity: 'high' })} className="flex-1 py-1.5 text-xs rounded-md border transition-colors" style={{ borderColor: settings.sensitivity === 'high' ? 'var(--primary)' : 'var(--border)', color: settings.sensitivity === 'high' ? 'var(--primary)' : 'var(--muted-foreground)', background: settings.sensitivity === 'high' ? 'rgba(34,211,238,0.1)' : 'transparent' }}>High</button>
                           </div>
                         </div>
                       </>
@@ -293,6 +299,7 @@ export default function DashboardTopbar({
                     {/* CONTROL ROOM / ACCESSIBILITY TAB */}
                     {settingsTab === 'accessibility' && (
                       <>
+                        {/* 6. Global Setting Applied to Colorblind */}
                         <div className="flex items-center justify-between">
                           <div>
                             <div className="flex items-center gap-2">
@@ -301,11 +308,12 @@ export default function DashboardTopbar({
                             </div>
                             <p className="text-[10px] mt-0.5" style={{ color: 'var(--muted-foreground)' }}>Shift density palette to Blue/Orange</p>
                           </div>
-                          <div onClick={() => setColorblind(!colorblind)} className="w-8 h-4 rounded-full flex items-center p-0.5 cursor-pointer transition-colors" style={{ background: colorblind ? 'var(--primary)' : 'var(--surface-3)' }}>
-                            <div className={`w-3 h-3 rounded-full bg-white transform transition-transform ${colorblind ? 'translate-x-4' : ''}`}></div>
+                          <div onClick={() => onUpdateSettings({ ...settings, colorblind: !settings.colorblind })} className="w-8 h-4 rounded-full flex items-center p-0.5 cursor-pointer transition-colors" style={{ background: settings.colorblind ? 'var(--primary)' : 'var(--surface-3)' }}>
+                            <div className={`w-3 h-3 rounded-full bg-white transform transition-transform ${settings.colorblind ? 'translate-x-4' : ''}`}></div>
                           </div>
                         </div>
 
+                        {/* 7. Global Setting Applied to Night Vision */}
                         <div className="flex items-center justify-between">
                           <div>
                             <div className="flex items-center gap-2">
@@ -314,19 +322,20 @@ export default function DashboardTopbar({
                             </div>
                             <p className="text-[10px] mt-0.5" style={{ color: 'var(--muted-foreground)' }}>Ultra-dark mode for night shifts</p>
                           </div>
-                          <div onClick={() => setNightVision(!nightVision)} className="w-8 h-4 rounded-full flex items-center p-0.5 cursor-pointer transition-colors" style={{ background: nightVision ? 'var(--primary)' : 'var(--surface-3)' }}>
-                            <div className={`w-3 h-3 rounded-full bg-white transform transition-transform ${nightVision ? 'translate-x-4' : ''}`}></div>
+                          <div onClick={() => onUpdateSettings({ ...settings, nightVision: !settings.nightVision })} className="w-8 h-4 rounded-full flex items-center p-0.5 cursor-pointer transition-colors" style={{ background: settings.nightVision ? 'var(--primary)' : 'var(--surface-3)' }}>
+                            <div className={`w-3 h-3 rounded-full bg-white transform transition-transform ${settings.nightVision ? 'translate-x-4' : ''}`}></div>
                           </div>
                         </div>
 
+                        {/* 8. Global Setting Applied to Grid Density */}
                         <div className="space-y-2 pt-2 border-t" style={{ borderColor: 'var(--border)' }}>
                           <div className="flex items-center gap-2">
                             <LayoutGrid size={14} style={{ color: 'var(--foreground)' }} />
                             <span className="text-sm font-medium" style={{ color: 'var(--foreground)' }}>Grid Density</span>
                           </div>
                           <div className="flex gap-2">
-                            <button onClick={() => setGridDensity('comfortable')} className="flex-1 py-1.5 text-xs rounded-md border transition-colors" style={{ borderColor: gridDensity === 'comfortable' ? 'var(--primary)' : 'var(--border)', color: gridDensity === 'comfortable' ? 'var(--primary)' : 'var(--muted-foreground)', background: gridDensity === 'comfortable' ? 'rgba(34,211,238,0.1)' : 'transparent' }}>Comfortable</button>
-                            <button onClick={() => setGridDensity('compact')} className="flex-1 py-1.5 text-xs rounded-md border transition-colors" style={{ borderColor: gridDensity === 'compact' ? 'var(--primary)' : 'var(--border)', color: gridDensity === 'compact' ? 'var(--primary)' : 'var(--muted-foreground)', background: gridDensity === 'compact' ? 'rgba(34,211,238,0.1)' : 'transparent' }}>Compact View</button>
+                            <button onClick={() => onUpdateSettings({ ...settings, gridDensity: 'comfortable' })} className="flex-1 py-1.5 text-xs rounded-md border transition-colors" style={{ borderColor: settings.gridDensity === 'comfortable' ? 'var(--primary)' : 'var(--border)', color: settings.gridDensity === 'comfortable' ? 'var(--primary)' : 'var(--muted-foreground)', background: settings.gridDensity === 'comfortable' ? 'rgba(34,211,238,0.1)' : 'transparent' }}>Comfortable</button>
+                            <button onClick={() => onUpdateSettings({ ...settings, gridDensity: 'compact' })} className="flex-1 py-1.5 text-xs rounded-md border transition-colors" style={{ borderColor: settings.gridDensity === 'compact' ? 'var(--primary)' : 'var(--border)', color: settings.gridDensity === 'compact' ? 'var(--primary)' : 'var(--muted-foreground)', background: settings.gridDensity === 'compact' ? 'rgba(34,211,238,0.1)' : 'transparent' }}>Compact View</button>
                           </div>
                         </div>
                       </>
