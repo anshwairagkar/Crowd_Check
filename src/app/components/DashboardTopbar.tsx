@@ -192,7 +192,7 @@ export default function DashboardTopbar({
                           <div className="w-3 h-3 rounded-full bg-white transform translate-x-4"></div>
                         </div>
                       </div>
-                      <p className="text-xs mt-2" style={{ color: 'var(--muted-foreground)' }}>AI automatically blurs faces in CCTV feeds to protect identity.</p>
+                      <p className="text-xs mt-2" style={{ color: 'var(--muted-foreground)' }}>AI Transforms Individuals into Dynamic Data Points to Guarantee Absolute Privacy 🛡️.</p>
                     </div>
                   </div>
                 </div>
@@ -367,3 +367,6 @@ export default function DashboardTopbar({
     </header>
   );
 }
+
+
+// AI automatically blurs faces in CCTV feeds to protect identity
