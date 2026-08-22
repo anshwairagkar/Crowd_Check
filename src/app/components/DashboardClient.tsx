@@ -194,11 +194,6 @@ export default function DashboardClient() {
       simulatedWaiting = Math.max(0, Math.floor(simulatedWaiting * (1 + settings.timeShift * 0.1)));
     }
 
-    // Weather Logic
-    if (settings.weather && venue.category === 'Traffic Intersection') {
-      simulatedPresent = Math.floor(simulatedPresent * 0.7);
-    }
-
     return { 
       ...venue, 
       presentCount: simulatedPresent, 
