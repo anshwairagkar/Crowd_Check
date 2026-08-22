@@ -348,7 +348,7 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { X, Video, Activity, AlertCircle } from 'lucide-react';
+import { X, Video, Activity, AlertCircle, ScanEye, Camera } from 'lucide-react';
 import { Venue } from './venueData';
 
 interface CCTVFeedModalProps {
@@ -358,6 +358,7 @@ interface CCTVFeedModalProps {
 
 export default function CCTVFeedModal({ venue, onClose }: CCTVFeedModalProps) {
   const [time, setTime] = useState('');
+  const [view, setView] = useState<'raw' | 'ai'>('raw'); // Controls which tab is active
 
   // Live clock for the CCTV overlay
   useEffect(() => {
@@ -378,17 +379,40 @@ export default function CCTVFeedModal({ venue, onClose }: CCTVFeedModalProps) {
       {/* Modal Container */}
       <div className="relative w-full max-w-5xl rounded-2xl border border-white/10 bg-[#060c18] shadow-2xl overflow-hidden flex flex-col">
         
-        {/* Header */}
+        {/* Header with Tabs */}
         <div className="flex items-center justify-between px-4 py-3 border-b border-white/10 bg-white/5">
           <div className="flex items-center gap-3">
             <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-cyan-500/10 text-cyan-400">
               <Video size={16} />
             </div>
             <div>
-              <h3 className="text-sm font-semibold text-white">Live AI Feed: {venue.name}</h3>
-              <p className="text-xs text-gray-400">Camera Network 1 — Node Active</p>
+              <h3 className="text-sm font-semibold text-white">Camera Network: {venue.name}</h3>
+              <p className="text-xs text-gray-400">Feed 1 — Status: Online</p>
             </div>
           </div>
+
+          {/* TAB SWITCHER */}
+          <div className="hidden sm:flex items-center bg-black/50 rounded-lg p-1 border border-white/10">
+            <button
+              onClick={() => setView('raw')}
+              className={`flex items-center gap-2 px-3 py-1.5 rounded-md text-xs font-semibold transition-colors ${
+                view === 'raw' ? 'bg-white/10 text-white' : 'text-gray-500 hover:text-gray-300'
+              }`}
+            >
+              <Camera size={14} />
+              Raw Feed
+            </button>
+            <button
+              onClick={() => setView('ai')}
+              className={`flex items-center gap-2 px-3 py-1.5 rounded-md text-xs font-semibold transition-colors ${
+                view === 'ai' ? 'bg-cyan-500/20 text-cyan-400' : 'text-gray-500 hover:text-gray-300'
+              }`}
+            >
+              <ScanEye size={14} />
+              AI Analysis
+            </button>
+          </div>
+
           <button 
             onClick={onClose}
             className="p-2 rounded-lg hover:bg-white/10 transition-colors text-gray-400 hover:text-white"
@@ -400,16 +424,16 @@ export default function CCTVFeedModal({ venue, onClose }: CCTVFeedModalProps) {
         {/* The CCTV Feed Screen */}
         <div className="relative w-full aspect-video bg-[#02040a] overflow-hidden group">
           
-          {/* SIMULATED BACKGROUND: Dark grid instead of a video to prevent broken links */}
+          {/* SIMULATED BACKGROUND */}
           <div 
-            className="absolute inset-0 opacity-20" 
+            className={`absolute inset-0 transition-opacity duration-500 ${view === 'ai' ? 'opacity-20' : 'opacity-10'}`} 
             style={{ 
               backgroundImage: 'linear-gradient(rgba(255,255,255,0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.1) 1px, transparent 1px)',
               backgroundSize: '40px 40px' 
             }}
           />
 
-          {/* CCTV Overlay UI */}
+          {/* Standard Camera UI (Always visible) */}
           <div className="absolute top-4 left-4 flex items-center gap-2">
             <span className="w-2.5 h-2.5 rounded-full bg-red-500 animate-pulse" />
             <span className="text-red-500 font-mono text-xs font-bold tracking-widest">REC</span>
@@ -419,83 +443,89 @@ export default function CCTVFeedModal({ venue, onClose }: CCTVFeedModalProps) {
             {new Date().toISOString().split('T')[0]} {time}
           </div>
 
-          <div className="absolute bottom-4 left-4 text-cyan-400 font-mono text-[10px] uppercase opacity-70">
-            AI VISION MODEL v2.4 <br/>
-            TRACKING ACTIVE
-          </div>
+          {/* 🔴 AI SPECIFIC OVERLAYS (Only visible when AI tab is active) 🔴 */}
+          {view === 'ai' && (
+            <>
+              <div className="absolute bottom-4 left-4 text-cyan-400 font-mono text-[10px] uppercase opacity-70">
+                AI VISION MODEL v2.4 <br/>
+                TRACKING ACTIVE
+              </div>
 
-          {/* 🔴 THE COMPUTER VISION ILLUSION (ANIMATED BOXES) 🔴 */}
-          <style>{`
-            @keyframes track1 {
-              0% { top: 30%; left: 20%; width: 45px; height: 90px; }
-              33% { top: 32%; left: 35%; width: 50px; height: 95px; }
-              66% { top: 28%; left: 55%; width: 40px; height: 85px; }
-              100% { top: 30%; left: 20%; width: 45px; height: 90px; }
-            }
-            @keyframes track2 {
-              0% { top: 50%; left: 70%; width: 60px; height: 120px; }
-              50% { top: 55%; left: 60%; width: 65px; height: 125px; }
-              100% { top: 50%; left: 70%; width: 60px; height: 120px; }
-            }
-            @keyframes track3 {
-              0% { top: 40%; left: 45%; width: 35px; height: 75px; opacity: 1; }
-              40% { top: 40%; left: 48%; width: 35px; height: 75px; opacity: 1; }
-              50% { opacity: 0; }
-              90% { opacity: 0; }
-              100% { top: 40%; left: 45%; width: 35px; height: 75px; opacity: 1; }
-            }
-            .ai-box {
-              position: absolute;
-              border: 1.5px solid #22c55e;
-              background: rgba(34, 197, 94, 0.05);
-              box-shadow: 0 0 10px rgba(34, 197, 94, 0.3) inset;
-              transition: all 0.1s linear;
-            }
-            .ai-label {
-              position: absolute;
-              top: -16px;
-              left: -1.5px;
-              background: #22c55e;
-              color: #000;
-              font-size: 8px;
-              font-family: monospace;
-              padding: 2px 4px;
-              font-weight: bold;
-              white-space: nowrap;
-            }
-          `}</style>
+              <style>{`
+                @keyframes track1 {
+                  0% { top: 30%; left: 20%; width: 45px; height: 90px; }
+                  33% { top: 32%; left: 35%; width: 50px; height: 95px; }
+                  66% { top: 28%; left: 55%; width: 40px; height: 85px; }
+                  100% { top: 30%; left: 20%; width: 45px; height: 90px; }
+                }
+                @keyframes track2 {
+                  0% { top: 50%; left: 70%; width: 60px; height: 120px; }
+                  50% { top: 55%; left: 60%; width: 65px; height: 125px; }
+                  100% { top: 50%; left: 70%; width: 60px; height: 120px; }
+                }
+                @keyframes track3 {
+                  0% { top: 40%; left: 45%; width: 35px; height: 75px; opacity: 1; }
+                  40% { top: 40%; left: 48%; width: 35px; height: 75px; opacity: 1; }
+                  50% { opacity: 0; }
+                  90% { opacity: 0; }
+                  100% { top: 40%; left: 45%; width: 35px; height: 75px; opacity: 1; }
+                }
+                .ai-box {
+                  position: absolute;
+                  border: 1.5px solid #22c55e;
+                  background: rgba(34, 197, 94, 0.05);
+                  box-shadow: 0 0 10px rgba(34, 197, 94, 0.3) inset;
+                  transition: all 0.1s linear;
+                }
+                .ai-label {
+                  position: absolute;
+                  top: -16px;
+                  left: -1.5px;
+                  background: #22c55e;
+                  color: #000;
+                  font-size: 8px;
+                  font-family: monospace;
+                  padding: 2px 4px;
+                  font-weight: bold;
+                  white-space: nowrap;
+                }
+              `}</style>
 
-          {/* Bounding Box 1 */}
-          <div className="ai-box" style={{ animation: 'track1 12s infinite ease-in-out' }}>
-            <div className="ai-label">PERSON: 98%</div>
-          </div>
+              {/* Bounding Box 1 */}
+              <div className="ai-box" style={{ animation: 'track1 12s infinite ease-in-out' }}>
+                <div className="ai-label">PERSON: 98%</div>
+              </div>
 
-          {/* Bounding Box 2 */}
-          <div className="ai-box" style={{ animation: 'track2 8s infinite ease-in-out', borderColor: '#3b82f6', background: 'rgba(59,130,246,0.05)' }}>
-            <div className="ai-label" style={{ background: '#3b82f6', color: 'white' }}>PERSON: 94%</div>
-          </div>
+              {/* Bounding Box 2 */}
+              <div className="ai-box" style={{ animation: 'track2 8s infinite ease-in-out', borderColor: '#3b82f6', background: 'rgba(59,130,246,0.05)' }}>
+                <div className="ai-label" style={{ background: '#3b82f6', color: 'white' }}>PERSON: 94%</div>
+              </div>
 
-          {/* Bounding Box 3 (Appears and disappears) */}
-          <div className="ai-box" style={{ animation: 'track3 6s infinite ease-in-out' }}>
-            <div className="ai-label">PERSON: 82%</div>
-            {/* Center target crosshair inside box */}
-            <div className="absolute top-1/2 left-1/2 w-2 h-2 border border-green-500 rounded-full transform -translate-x-1/2 -translate-y-1/2" />
-          </div>
-
+              {/* Bounding Box 3 */}
+              <div className="ai-box" style={{ animation: 'track3 6s infinite ease-in-out' }}>
+                <div className="ai-label">PERSON: 82%</div>
+                <div className="absolute top-1/2 left-1/2 w-2 h-2 border border-green-500 rounded-full transform -translate-x-1/2 -translate-y-1/2" />
+              </div>
+            </>
+          )}
         </div>
 
         {/* Footer Stats */}
-        <div className="grid grid-cols-3 divide-x divide-white/10 bg-white/5 border-t border-white/10 text-white">
+        <div className="grid grid-cols-3 divide-x divide-white/10 bg-white/5 border-t border-white/10 text-white transition-colors duration-300">
           <div className="p-3 flex items-center justify-center gap-2">
-            <Activity size={14} className="text-green-400" />
-            <span className="text-xs font-medium">Tracking: Nominal</span>
+            <Activity size={14} className={view === 'ai' ? "text-green-400" : "text-gray-500"} />
+            <span className={`text-xs font-medium ${view === 'ai' ? '' : 'text-gray-500'}`}>
+              {view === 'ai' ? 'Tracking: Nominal' : 'Tracking: Offline'}
+            </span>
           </div>
           <div className="p-3 flex items-center justify-center gap-2">
-            <AlertCircle size={14} className="text-amber-400" />
-            <span className="text-xs font-medium">Anomalies: 0</span>
+            <AlertCircle size={14} className={view === 'ai' ? "text-amber-400" : "text-gray-500"} />
+            <span className={`text-xs font-medium ${view === 'ai' ? '' : 'text-gray-500'}`}>
+              {view === 'ai' ? 'Anomalies: 0' : 'Anomalies: N/A'}
+            </span>
           </div>
           <div className="p-3 flex items-center justify-center gap-2 text-gray-400">
-            <span className="text-xs font-mono">FRAME: 144.29.01</span>
+            <span className="text-xs font-mono">FRAME: {view === 'ai' ? '144.29.01' : '000.00.00'}</span>
           </div>
         </div>
 
