@@ -141,23 +141,62 @@ export default function DashboardClient() {
     });
   }, []);
 
+  // --- HELPER TO CHECK OPEN STATUS AT A SPECIFIC OFFSET TIME ---
+  const checkOpenWithOffset = (hours: string, offsetHours: number) => {
+    if (hours === '24/7') return true;
+    try {
+      const now = new Date();
+      now.setHours(now.getHours() + offsetHours);
+      const currentMinutes = now.getHours() * 60 + now.getMinutes();
+      const [startStr, endStr] = hours.split(' - ');
+      if (!startStr || !endStr) return true;
+      
+      const startMins = parseInt(startStr.split(':')[0]) * 60 + parseInt(startStr.split(':')[1]);
+      const endMins = parseInt(endStr.split(':')[0]) * 60 + parseInt(endStr.split(':')[1]);
+      
+      if (startMins <= endMins) {
+        return currentMinutes >= startMins && currentMinutes < endMins;
+      } else { 
+        return currentMinutes >= startMins || currentMinutes < endMins;
+      }
+    } catch (e) { return true; }
+  };
+
   // --- NEW: AI ENGINE DATA MODIFIER ---
   const simulatedVenues = venues.map(venue => {
-    let simulatedPresent = venue.presentCount;
+    const isSimulatedOpen = checkOpenWithOffset(venue.openHours, settings.timeShift);
+    
+    // Dynamically shift the timestamp text in the bottom right corner of the card
+    const shiftedDate = new Date();
+    shiftedDate.setHours(shiftedDate.getHours() + settings.timeShift);
+    const simulatedLastUpdated = shiftedDate.toLocaleTimeString('en-US', { hour12: false });
 
-    // Time Shift: Adjust crowds based on the past/future slider
-    if (settings.timeShift !== 0) {
-      // Mock logic: every hour shifts the current capacity by 5% 
-      const shiftFactor = 1 + (settings.timeShift * 0.05);
-      simulatedPresent = Math.min(venue.maxCapacity, Math.max(0, Math.floor(simulatedPresent * shiftFactor)));
+    // If the venue is closed at this shifted time, force all numbers to 0
+    if (!isSimulatedOpen) {
+      return { ...venue, presentCount: 0, waitingCount: 0, lastUpdated: simulatedLastUpdated };
     }
 
-    // Weather: If active, randomly drop outdoor venue counts by 30%
+    let simulatedPresent = venue.presentCount;
+    let simulatedWaiting = venue.waitingCount;
+
+    // Time Shift Crowd Logic for OPEN venues
+    if (settings.timeShift !== 0) {
+      const shiftFactor = 1 + (settings.timeShift * 0.05);
+      simulatedPresent = Math.min(venue.maxCapacity, Math.max(0, Math.floor(simulatedPresent * shiftFactor)));
+      simulatedWaiting = Math.max(0, Math.floor(simulatedWaiting * (1 + settings.timeShift * 0.1)));
+    }
+
+    // Weather Logic
     if (settings.weather && venue.category === 'Traffic Intersection') {
       simulatedPresent = Math.floor(simulatedPresent * 0.7);
     }
 
-    return { ...venue, presentCount: simulatedPresent };
+    return { 
+      ...venue, 
+      presentCount: simulatedPresent, 
+      waitingCount: simulatedWaiting,
+      lastUpdated: simulatedLastUpdated
+    };
   });
 
   const filteredVenues = simulatedVenues.filter(v => {
@@ -307,7 +346,8 @@ export default function DashboardClient() {
           venues={filteredVenues}
           changedIds={changedIds}
           searchQuery={searchQuery}
-          density={settings.gridDensity} // Passes the grid setting to the component!
+          density={settings.gridDensity}
+          timeShift={settings.timeShift} 
         />
       </main>
     </div>
