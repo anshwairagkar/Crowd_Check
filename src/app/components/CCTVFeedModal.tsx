@@ -531,8 +531,7 @@ export default function CCTVFeedModal({ venue, onClose }: CCTVFeedModalProps) {
 //             <span className="text-xs font-mono">FRAME: {view === 'ai' ? '144.29.01' : '000.00.00'}</span>
 //           </div>
 //         </div>
-
-      </div>
-    </div>
-  );
-}
+//       </div>
+//     </div>
+//   );
+// }
