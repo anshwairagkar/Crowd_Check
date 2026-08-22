@@ -164,7 +164,9 @@ export default function DashboardClient() {
 
   // --- NEW: AI ENGINE DATA MODIFIER ---
   const simulatedVenues = venues.map(venue => {
+    // Check both simulated time AND real time!
     const isSimulatedOpen = checkOpenWithOffset(venue.openHours, settings.timeShift);
+    const isRealOpen = checkOpenWithOffset(venue.openHours, 0); 
     
     // Dynamically shift the timestamp text in the bottom right corner of the card
     const shiftedDate = new Date();
@@ -178,6 +180,12 @@ export default function DashboardClient() {
 
     let simulatedPresent = venue.presentCount;
     let simulatedWaiting = venue.waitingCount;
+
+    // FIX: If the venue is closed in real life (0 crowd) but OPEN in the simulation, generate a baseline crowd!
+    if (!isRealOpen && isSimulatedOpen) {
+      simulatedPresent = Math.floor(venue.maxCapacity * 0.5); // Start them at 50% capacity
+      simulatedWaiting = Math.floor(venue.maxCapacity * 0.05); // Small base queue
+    }
 
     // Time Shift Crowd Logic for OPEN venues
     if (settings.timeShift !== 0) {
