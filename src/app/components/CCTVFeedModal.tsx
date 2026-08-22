@@ -358,9 +358,8 @@ interface CCTVFeedModalProps {
 
 export default function CCTVFeedModal({ venue, onClose }: CCTVFeedModalProps) {
   const [time, setTime] = useState('');
-  const [view, setView] = useState<'raw' | 'ai'>('raw'); // Controls which tab is active
+  const [view, setView] = useState<'raw' | 'ai'>('raw');
 
-  // Live clock for the CCTV overlay
   useEffect(() => {
     const interval = setInterval(() => {
       setTime(new Date().toLocaleTimeString('en-US', { hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit' }));
@@ -368,18 +367,19 @@ export default function CCTVFeedModal({ venue, onClose }: CCTVFeedModalProps) {
     return () => clearInterval(interval);
   }, []);
 
+  // A realistic placeholder image of a crowd/mall
+  const cctvImage = "https://images.unsplash.com/photo-1541194577687-8c63bf9e7ee3?q=80&w=1200&auto=format&fit=crop";
+
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6">
-      {/* Backdrop */}
       <div 
         className="absolute inset-0 bg-black/80 backdrop-blur-sm"
         onClick={onClose}
       />
 
-      {/* Modal Container */}
       <div className="relative w-full max-w-5xl rounded-2xl border border-white/10 bg-[#060c18] shadow-2xl overflow-hidden flex flex-col">
         
-        {/* Header with Tabs */}
+        {/* Header */}
         <div className="flex items-center justify-between px-4 py-3 border-b border-white/10 bg-white/5">
           <div className="flex items-center gap-3">
             <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-cyan-500/10 text-cyan-400">
@@ -391,7 +391,6 @@ export default function CCTVFeedModal({ venue, onClose }: CCTVFeedModalProps) {
             </div>
           </div>
 
-          {/* TAB SWITCHER */}
           <div className="hidden sm:flex items-center bg-black/50 rounded-lg p-1 border border-white/10">
             <button
               onClick={() => setView('raw')}
@@ -421,54 +420,60 @@ export default function CCTVFeedModal({ venue, onClose }: CCTVFeedModalProps) {
           </button>
         </div>
 
-        {/* The CCTV Feed Screen */}
+        {/* FEED SCREEN */}
         <div className="relative w-full aspect-video bg-[#02040a] overflow-hidden group">
           
-          {/* SIMULATED BACKGROUND */}
+          {/* THE REALISTIC FEED IMAGE */}
           <div 
-            className={`absolute inset-0 transition-opacity duration-500 ${view === 'ai' ? 'opacity-20' : 'opacity-10'}`} 
-            style={{ 
-              backgroundImage: 'linear-gradient(rgba(255,255,255,0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.1) 1px, transparent 1px)',
-              backgroundSize: '40px 40px' 
+            className={`absolute inset-0 bg-cover bg-center transition-all duration-700 ease-in-out ${
+              view === 'ai' ? 'grayscale opacity-40 blur-[1px]' : 'grayscale-[30%] opacity-80'
+            }`}
+            style={{ backgroundImage: `url('${cctvImage}')` }}
+          />
+
+          {/* CRT SCANLINE EFFECT */}
+          <div 
+            className="absolute inset-0 pointer-events-none opacity-20 mix-blend-overlay"
+            style={{
+              backgroundImage: 'repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,0.8) 2px, rgba(0,0,0,0.8) 4px)'
             }}
           />
 
-          {/* Standard Camera UI (Always visible) */}
           <div className="absolute top-4 left-4 flex items-center gap-2">
             <span className="w-2.5 h-2.5 rounded-full bg-red-500 animate-pulse" />
             <span className="text-red-500 font-mono text-xs font-bold tracking-widest">REC</span>
           </div>
           
-          <div className="absolute top-4 right-4 text-white font-mono text-xs opacity-70">
+          <div className="absolute top-4 right-4 text-white font-mono text-xs opacity-70 bg-black/40 px-2 py-1 rounded">
             {new Date().toISOString().split('T')[0]} {time}
           </div>
 
-          {/* 🔴 AI SPECIFIC OVERLAYS (Only visible when AI tab is active) 🔴 */}
           {view === 'ai' && (
             <>
-              <div className="absolute bottom-4 left-4 text-cyan-400 font-mono text-[10px] uppercase opacity-70">
+              <div className="absolute bottom-4 left-4 text-cyan-400 font-mono text-[10px] uppercase opacity-70 bg-black/40 px-2 py-1 rounded">
                 AI VISION MODEL v2.4 <br/>
                 TRACKING ACTIVE
               </div>
 
               <style>{`
+                /* Tightly bound animations to keep boxes on the "people" in the background image */
                 @keyframes track1 {
-                  0% { top: 30%; left: 20%; width: 45px; height: 90px; }
-                  33% { top: 32%; left: 35%; width: 50px; height: 95px; }
-                  66% { top: 28%; left: 55%; width: 40px; height: 85px; }
-                  100% { top: 30%; left: 20%; width: 45px; height: 90px; }
+                  0% { top: 40%; left: 35%; width: 40px; height: 100px; }
+                  50% { top: 42%; left: 38%; width: 45px; height: 110px; }
+                  100% { top: 40%; left: 35%; width: 40px; height: 100px; }
                 }
                 @keyframes track2 {
-                  0% { top: 50%; left: 70%; width: 60px; height: 120px; }
-                  50% { top: 55%; left: 60%; width: 65px; height: 125px; }
-                  100% { top: 50%; left: 70%; width: 60px; height: 120px; }
+                  0% { top: 55%; left: 65%; width: 60px; height: 140px; }
+                  50% { top: 53%; left: 62%; width: 55px; height: 130px; }
+                  100% { top: 55%; left: 65%; width: 60px; height: 140px; }
                 }
                 @keyframes track3 {
-                  0% { top: 40%; left: 45%; width: 35px; height: 75px; opacity: 1; }
-                  40% { top: 40%; left: 48%; width: 35px; height: 75px; opacity: 1; }
-                  50% { opacity: 0; }
-                  90% { opacity: 0; }
-                  100% { top: 40%; left: 45%; width: 35px; height: 75px; opacity: 1; }
+                  0% { top: 45%; left: 50%; width: 35px; height: 80px; opacity: 1; }
+                  40% { top: 45%; left: 52%; width: 35px; height: 80px; opacity: 1; }
+                  45% { opacity: 0; }
+                  85% { opacity: 0; }
+                  90% { top: 45%; left: 50%; width: 35px; height: 80px; opacity: 1; }
+                  100% { top: 45%; left: 50%; width: 35px; height: 80px; opacity: 1; }
                 }
                 .ai-box {
                   position: absolute;
@@ -476,14 +481,15 @@ export default function CCTVFeedModal({ venue, onClose }: CCTVFeedModalProps) {
                   background: rgba(34, 197, 94, 0.05);
                   box-shadow: 0 0 10px rgba(34, 197, 94, 0.3) inset;
                   transition: all 0.1s linear;
+                  pointer-events: none; /* Prevents boxes from interfering with clicks */
                 }
                 .ai-label {
                   position: absolute;
-                  top: -16px;
+                  top: -18px;
                   left: -1.5px;
                   background: #22c55e;
                   color: #000;
-                  font-size: 8px;
+                  font-size: 9px;
                   font-family: monospace;
                   padding: 2px 4px;
                   font-weight: bold;
@@ -491,17 +497,14 @@ export default function CCTVFeedModal({ venue, onClose }: CCTVFeedModalProps) {
                 }
               `}</style>
 
-              {/* Bounding Box 1 */}
-              <div className="ai-box" style={{ animation: 'track1 12s infinite ease-in-out' }}>
+              <div className="ai-box" style={{ animation: 'track1 8s infinite ease-in-out' }}>
                 <div className="ai-label">PERSON: 98%</div>
               </div>
 
-              {/* Bounding Box 2 */}
-              <div className="ai-box" style={{ animation: 'track2 8s infinite ease-in-out', borderColor: '#3b82f6', background: 'rgba(59,130,246,0.05)' }}>
+              <div className="ai-box" style={{ animation: 'track2 10s infinite ease-in-out', borderColor: '#3b82f6', background: 'rgba(59,130,246,0.05)' }}>
                 <div className="ai-label" style={{ background: '#3b82f6', color: 'white' }}>PERSON: 94%</div>
               </div>
 
-              {/* Bounding Box 3 */}
               <div className="ai-box" style={{ animation: 'track3 6s infinite ease-in-out' }}>
                 <div className="ai-label">PERSON: 82%</div>
                 <div className="absolute top-1/2 left-1/2 w-2 h-2 border border-green-500 rounded-full transform -translate-x-1/2 -translate-y-1/2" />
