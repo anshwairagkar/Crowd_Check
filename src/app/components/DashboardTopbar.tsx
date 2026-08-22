@@ -5,36 +5,29 @@ import AppLogo from '@/components/ui/AppLogo';
 import { AppSettings } from './DashboardClient';
 import { 
   Activity, Bell, Settings, Shield, AlertTriangle, X, 
-  Lock, EyeOff, Server, BrainCircuit, Eye, CloudRain, 
-  Gauge, LayoutGrid, Moon 
+  Lock, EyeOff, Server, BrainCircuit, Eye, LayoutGrid, Moon 
 } from 'lucide-react';
 import { Venue } from './venueData';
 
-// 1. Corrected Interface
 interface DashboardTopbarProps {
   venues?: Venue[];
   settings: AppSettings;
   onUpdateSettings: (newSettings: AppSettings) => void;
 }
 
-// 2. Corrected Function Parameters
 export default function DashboardTopbar({
   venues = [],
   settings,
   onUpdateSettings,
 }: DashboardTopbarProps) {
-  // Main dropdown toggles (These stay local because they just open/close menus)
   const [isAlertsOpen, setIsAlertsOpen] = useState(false);
   const [isShieldOpen, setIsShieldOpen] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
 
-  // Settings Tabs
   const [settingsTab, setSettingsTab] = useState<'ai' | 'accessibility'>('ai');
   
-  // Filter venues mathematically: Present Count / Max Capacity >= 90%
   const overcrowdedVenues = venues.filter(v => (v.presentCount / v.maxCapacity) >= 0.9);
 
-  // Helper to close others when opening one
   const toggleDropdown = (menu: 'alerts' | 'shield' | 'settings') => {
     setIsAlertsOpen(menu === 'alerts' ? !isAlertsOpen : false);
     setIsShieldOpen(menu === 'shield' ? !isShieldOpen : false);
@@ -52,7 +45,6 @@ export default function DashboardTopbar({
     >
       <div className="max-w-screen-2xl mx-auto px-4 lg:px-8 xl:px-10 2xl:px-16">
         <div className="flex items-center justify-between h-16">
-          {/* Logo */}
           <div className="flex items-center gap-3">
             <div className="flex items-center gap-2 cursor-pointer">
               <AppLogo size={32} />
@@ -71,7 +63,6 @@ export default function DashboardTopbar({
             </div>
           </div>
 
-          {/* Center status */}
           <div
             className="hidden md:flex items-center gap-2 text-sm"
             style={{ color: 'var(--muted-foreground)' }}
@@ -90,7 +81,6 @@ export default function DashboardTopbar({
             </span>
           </div>
 
-          {/* Right actions */}
           <div className="flex items-center gap-2">
             
             {/* --- BELL / ALERTS --- */}
@@ -192,14 +182,14 @@ export default function DashboardTopbar({
                           <div className="w-3 h-3 rounded-full bg-white transform translate-x-4"></div>
                         </div>
                       </div>
-                      <p className="text-xs mt-2" style={{ color: 'var(--muted-foreground)' }}>AI Transforms Individuals into Dynamic Data Points to Guarantee Absolute Privacy 🛡️.</p>
+                      <p className="text-xs mt-2" style={{ color: 'var(--muted-foreground)' }}>AI automatically blurs faces in CCTV feeds to protect identity.</p>
                     </div>
                   </div>
                 </div>
               )}
             </div>
 
-            {/* --- SETTINGS / PREFERENCES (NEW TABBED WINDOW) --- */}
+            {/* --- SETTINGS / PREFERENCES --- */}
             <div className="relative">
               <button
                 onClick={() => toggleDropdown('settings')}
@@ -221,7 +211,6 @@ export default function DashboardTopbar({
                     </button>
                   </div>
                   
-                  {/* Tabs Header */}
                   <div className="flex border-b" style={{ borderColor: 'var(--border)', background: 'var(--surface-2)' }}>
                     <button 
                       onClick={() => setSettingsTab('ai')}
@@ -247,76 +236,45 @@ export default function DashboardTopbar({
                     </button>
                   </div>
 
-                  {/* Tab Content */}
                   <div className="p-4 space-y-5">
                     
-                    {/* AI ENGINE TAB */}
+                    {/* AI ENGINE TAB (Simplified!) */}
                     {settingsTab === 'ai' && (
-                      <>
-                        {/* TIME SHIFT SLIDER */}
-                        <div className="space-y-3">
-                          <div className="flex items-center justify-between">
-                            <div>
-                              <div className="flex items-center gap-2">
-                                <Activity size={14} style={{ color: 'var(--foreground)' }} />
-                                <span className="text-sm font-medium" style={{ color: 'var(--foreground)' }}>Timeline Forecaster</span>
-                              </div>
-                              <p className="text-[10px] mt-0.5" style={{ color: 'var(--muted-foreground)' }}>Shift data from -12h past to +12h future</p>
-                            </div>
-                            <div className="text-xs font-bold" style={{ color: settings.timeShift === 0 ? 'var(--primary)' : settings.timeShift > 0 ? '#facc15' : '#60a5fa' }}>
-                              {settings.timeShift === 0 ? 'LIVE' : settings.timeShift > 0 ? `+${settings.timeShift} hrs` : `${settings.timeShift} hrs`}
-                            </div>
-                          </div>
-                          
-                          <input 
-                            type="range" 
-                            min="-12" 
-                            max="12" 
-                            step="1" 
-                            value={settings.timeShift} 
-                            onChange={(e) => onUpdateSettings({ ...settings, timeShift: parseInt(e.target.value) })}
-                            className="w-full h-1.5 rounded-full appearance-none cursor-pointer"
-                            style={{ background: 'var(--surface-3)', accentColor: 'var(--primary)' }}
-                          />
-                          <div className="flex justify-between text-[10px]" style={{ color: 'var(--muted-foreground)' }}>
-                            <span>-12h</span>
-                            <span>Live</span>
-                            <span>+12h</span>
-                          </div>
-                        </div>
-                        {/* 4. Global Setting Applied to Weather */}
+                      <div className="space-y-3">
                         <div className="flex items-center justify-between">
                           <div>
                             <div className="flex items-center gap-2">
-                              <CloudRain size={14} style={{ color: 'var(--foreground)' }} />
-                              <span className="text-sm font-medium" style={{ color: 'var(--foreground)' }}>Weather Impact Data</span>
+                              <Activity size={14} style={{ color: 'var(--foreground)' }} />
+                              <span className="text-sm font-medium" style={{ color: 'var(--foreground)' }}>Timeline Forecaster</span>
                             </div>
-                            <p className="text-[10px] mt-0.5" style={{ color: 'var(--muted-foreground)' }}>Factor local climate into predictions</p>
+                            <p className="text-[10px] mt-0.5" style={{ color: 'var(--muted-foreground)' }}>Shift data from -12h past to +12h future</p>
                           </div>
-                          <div onClick={() => onUpdateSettings({ ...settings, weather: !settings.weather })} className="w-8 h-4 rounded-full flex items-center p-0.5 cursor-pointer transition-colors" style={{ background: settings.weather ? 'var(--primary)' : 'var(--surface-3)' }}>
-                            <div className={`w-3 h-3 rounded-full bg-white transform transition-transform ${settings.weather ? 'translate-x-4' : ''}`}></div>
-                          </div>
-                        </div>
-
-                        {/* 5. Global Setting Applied to Sensitivity */}
-                        <div className="space-y-2 pt-2 border-t" style={{ borderColor: 'var(--border)' }}>
-                          <div className="flex items-center gap-2">
-                            <Gauge size={14} style={{ color: 'var(--foreground)' }} />
-                            <span className="text-sm font-medium" style={{ color: 'var(--foreground)' }}>Anomaly Sensitivity</span>
-                          </div>
-                          <div className="flex gap-2">
-                            <button onClick={() => onUpdateSettings({ ...settings, sensitivity: 'low' })} className="flex-1 py-1.5 text-xs rounded-md border transition-colors" style={{ borderColor: settings.sensitivity === 'low' ? 'var(--primary)' : 'var(--border)', color: settings.sensitivity === 'low' ? 'var(--primary)' : 'var(--muted-foreground)', background: settings.sensitivity === 'low' ? 'rgba(34,211,238,0.1)' : 'transparent' }}>Low</button>
-                            <button onClick={() => onUpdateSettings({ ...settings, sensitivity: 'normal' })} className="flex-1 py-1.5 text-xs rounded-md border transition-colors" style={{ borderColor: settings.sensitivity === 'normal' ? 'var(--primary)' : 'var(--border)', color: settings.sensitivity === 'normal' ? 'var(--primary)' : 'var(--muted-foreground)', background: settings.sensitivity === 'normal' ? 'rgba(34,211,238,0.1)' : 'transparent' }}>Normal</button>
-                            <button onClick={() => onUpdateSettings({ ...settings, sensitivity: 'high' })} className="flex-1 py-1.5 text-xs rounded-md border transition-colors" style={{ borderColor: settings.sensitivity === 'high' ? 'var(--primary)' : 'var(--border)', color: settings.sensitivity === 'high' ? 'var(--primary)' : 'var(--muted-foreground)', background: settings.sensitivity === 'high' ? 'rgba(34,211,238,0.1)' : 'transparent' }}>High</button>
+                          <div className="text-xs font-bold" style={{ color: settings.timeShift === 0 ? 'var(--primary)' : settings.timeShift > 0 ? '#facc15' : '#60a5fa' }}>
+                            {settings.timeShift === 0 ? 'LIVE' : settings.timeShift > 0 ? `+${settings.timeShift} hrs` : `${settings.timeShift} hrs`}
                           </div>
                         </div>
-                      </>
+                        
+                        <input 
+                          type="range" 
+                          min="-12" 
+                          max="12" 
+                          step="1" 
+                          value={settings.timeShift} 
+                          onChange={(e) => onUpdateSettings({ ...settings, timeShift: parseInt(e.target.value) })}
+                          className="w-full h-1.5 rounded-full appearance-none cursor-pointer"
+                          style={{ background: 'var(--surface-3)', accentColor: 'var(--primary)' }}
+                        />
+                        <div className="flex justify-between text-[10px]" style={{ color: 'var(--muted-foreground)' }}>
+                          <span>-12h</span>
+                          <span>Live</span>
+                          <span>+12h</span>
+                        </div>
+                      </div>
                     )}
 
                     {/* CONTROL ROOM / ACCESSIBILITY TAB */}
                     {settingsTab === 'accessibility' && (
                       <>
-                        {/* 6. Global Setting Applied to Colorblind */}
                         <div className="flex items-center justify-between">
                           <div>
                             <div className="flex items-center gap-2">
@@ -330,7 +288,6 @@ export default function DashboardTopbar({
                           </div>
                         </div>
 
-                        {/* 7. Global Setting Applied to Night Vision */}
                         <div className="flex items-center justify-between">
                           <div>
                             <div className="flex items-center gap-2">
@@ -344,7 +301,6 @@ export default function DashboardTopbar({
                           </div>
                         </div>
 
-                        {/* 8. Global Setting Applied to Grid Density */}
                         <div className="space-y-2 pt-2 border-t" style={{ borderColor: 'var(--border)' }}>
                           <div className="flex items-center gap-2">
                             <LayoutGrid size={14} style={{ color: 'var(--foreground)' }} />
@@ -363,7 +319,6 @@ export default function DashboardTopbar({
               )}
             </div>
             
-            {/* User Profile */}
             <div
               className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-semibold ml-2"
               style={{ background: 'rgba(34,211,238,0.15)', color: 'var(--primary)' }}
@@ -384,6 +339,3 @@ export default function DashboardTopbar({
     </header>
   );
 }
-
-
-// AI automatically blurs faces in CCTV feeds to protect identity
