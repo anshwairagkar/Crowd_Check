@@ -2,7 +2,6 @@
 
 import React, { useRef, useEffect, useState } from 'react';
 import { getDensityLevel, getOccupancyPercent, Venue, checkIsOpen, DensityLevel } from './venueData';
-// Added 'Car' to the lucide-react imports
 import { Users, Clock, MapPin, Building2, TrendingUp, TrendingDown, Minus, Video, Car } from 'lucide-react';
 import OccupancyRing from './OccupancyRing';
 import MiniSparkline from './MiniSparkline';
@@ -11,6 +10,7 @@ import CCTVFeedModal from './CCTVFeedModal';
 interface VenueCardProps {
   venue: Venue;
   isUpdated: boolean;
+  timeShift?: number; // 1. Added timeShift to the interface
 }
 
 const DENSITY_CONFIG: Record<DensityLevel, {
@@ -63,8 +63,31 @@ const CATEGORY_ICONS: Record<string, React.ElementType> = {
   'Cultural': Building2,
 };
 
-export default function VenueCard({ venue, isUpdated }: VenueCardProps) {
-  const isOpen = checkIsOpen(venue.openHours);
+// 2. Added the time-checking helper
+const checkOpenWithOffset = (hours: string, offsetHours: number) => {
+  if (hours === '24/7') return true;
+  try {
+    const now = new Date();
+    now.setHours(now.getHours() + offsetHours);
+    const currentMinutes = now.getHours() * 60 + now.getMinutes();
+    const [startStr, endStr] = hours.split(' - ');
+    if (!startStr || !endStr) return true;
+    
+    const startMins = parseInt(startStr.split(':')[0]) * 60 + parseInt(startStr.split(':')[1]);
+    const endMins = parseInt(endStr.split(':')[0]) * 60 + parseInt(endStr.split(':')[1]);
+    
+    if (startMins <= endMins) {
+      return currentMinutes >= startMins && currentMinutes < endMins;
+    } else { 
+      return currentMinutes >= startMins || currentMinutes < endMins;
+    }
+  } catch (e) { return true; }
+};
+
+// 3. Destructured timeShift from the props
+export default function VenueCard({ venue, isUpdated, timeShift = 0 }: VenueCardProps) {
+  // 4. Determine open status based on the timeline slider!
+  const isOpen = checkOpenWithOffset(venue.openHours, timeShift);
 
   const prevPresent = useRef(venue.presentCount);
   const [trend, setTrend] = useState<'up' | 'down' | 'flat'>('flat');
