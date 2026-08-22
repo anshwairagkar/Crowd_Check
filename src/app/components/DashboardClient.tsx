@@ -14,7 +14,7 @@ import { Settings2 } from 'lucide-react';
 import DashboardTopbar from './DashboardTopbar';
 
 export interface AppSettings {
-  predictive: boolean;
+  timeShift: number; // Changed from predictive: boolean
   weather: boolean;
   sensitivity: 'low' | 'normal' | 'high';
   colorblind: boolean;
@@ -41,7 +41,7 @@ export default function DashboardClient() {
   const prevHighRisk = useRef<string[]>([]);
   
   const [settings, setSettings] = useState<AppSettings>({
-    predictive: false,
+    timeShift: 0, // 0 represents "Live" (Current Time)
     weather: true,
     sensitivity: 'normal',
     colorblind: false,
