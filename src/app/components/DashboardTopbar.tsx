@@ -253,20 +253,37 @@ export default function DashboardTopbar({
                     {/* AI ENGINE TAB */}
                     {settingsTab === 'ai' && (
                       <>
-                        {/* 3. Global Setting Applied to Predictive */}
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <div className="flex items-center gap-2">
-                              <Activity size={14} style={{ color: 'var(--foreground)' }} />
-                              <span className="text-sm font-medium" style={{ color: 'var(--foreground)' }}>Predictive Forecasting</span>
+                        {/* TIME SHIFT SLIDER */}
+                        <div className="space-y-3">
+                          <div className="flex items-center justify-between">
+                            <div>
+                              <div className="flex items-center gap-2">
+                                <Activity size={14} style={{ color: 'var(--foreground)' }} />
+                                <span className="text-sm font-medium" style={{ color: 'var(--foreground)' }}>Timeline Forecaster</span>
+                              </div>
+                              <p className="text-[10px] mt-0.5" style={{ color: 'var(--muted-foreground)' }}>Shift data from -12h past to +12h future</p>
                             </div>
-                            <p className="text-[10px] mt-0.5" style={{ color: 'var(--muted-foreground)' }}>Shift timeline +30 mins based on trends</p>
+                            <div className="text-xs font-bold" style={{ color: settings.timeShift === 0 ? 'var(--primary)' : settings.timeShift > 0 ? '#facc15' : '#60a5fa' }}>
+                              {settings.timeShift === 0 ? 'LIVE' : settings.timeShift > 0 ? `+${settings.timeShift} hrs` : `${settings.timeShift} hrs`}
+                            </div>
                           </div>
-                          <div onClick={() => onUpdateSettings({ ...settings, predictive: !settings.predictive })} className="w-8 h-4 rounded-full flex items-center p-0.5 cursor-pointer transition-colors" style={{ background: settings.predictive ? 'var(--primary)' : 'var(--surface-3)' }}>
-                            <div className={`w-3 h-3 rounded-full bg-white transform transition-transform ${settings.predictive ? 'translate-x-4' : ''}`}></div>
+                          
+                          <input 
+                            type="range" 
+                            min="-12" 
+                            max="12" 
+                            step="1" 
+                            value={settings.timeShift} 
+                            onChange={(e) => onUpdateSettings({ ...settings, timeShift: parseInt(e.target.value) })}
+                            className="w-full h-1.5 rounded-full appearance-none cursor-pointer"
+                            style={{ background: 'var(--surface-3)', accentColor: 'var(--primary)' }}
+                          />
+                          <div className="flex justify-between text-[10px]" style={{ color: 'var(--muted-foreground)' }}>
+                            <span>-12h</span>
+                            <span>Live</span>
+                            <span>+12h</span>
                           </div>
                         </div>
-
                         {/* 4. Global Setting Applied to Weather */}
                         <div className="flex items-center justify-between">
                           <div>
