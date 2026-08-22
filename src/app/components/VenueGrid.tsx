@@ -9,11 +9,12 @@ interface VenueGridProps {
   venues: Venue[];
   changedIds: Set<string>;
   searchQuery: string;
-  density?: 'comfortable' | 'compact'; // 1. Added density prop
+  density?: 'comfortable' | 'compact';
+  timeShift?: number; // 1. Added timeShift to the interface
 }
 
-// 2. Added density with a default value of 'comfortable'
-export default function VenueGrid({ venues, changedIds, searchQuery, density = 'comfortable' }: VenueGridProps) {
+// 2. Extracted timeShift from the arguments with a default value of 0
+export default function VenueGrid({ venues, changedIds, searchQuery, density = 'comfortable', timeShift = 0 }: VenueGridProps) {
   if (venues.length === 0) {
     return (
       <div
@@ -42,7 +43,7 @@ export default function VenueGrid({ venues, changedIds, searchQuery, density = '
     );
   }
 
-  // 3. Dynamic grid classes based on the current setting
+  // Dynamic grid classes based on the current setting
   const gridClass = density === 'compact'
     ? "grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3"
     : "grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-3 gap-4";
@@ -64,13 +65,13 @@ export default function VenueGrid({ venues, changedIds, searchQuery, density = '
         </div>
       </div>
 
-      {/* 4. Applied the dynamic grid class here */}
       <div className={gridClass}>
         {venues.map(venue => (
           <VenueCard
             key={venue.id}
             venue={venue}
             isUpdated={changedIds.has(venue.id)}
+            timeShift={timeShift} // 3. Passed the timeShift prop down to the card
           />
         ))}
       </div>
