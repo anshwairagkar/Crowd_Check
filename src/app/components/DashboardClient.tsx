@@ -142,13 +142,14 @@ export default function DashboardClient() {
   }, []);
 
   // --- NEW: AI ENGINE DATA MODIFIER ---
-  // We apply the mathematical settings before distributing the data to the rest of the app
   const simulatedVenues = venues.map(venue => {
     let simulatedPresent = venue.presentCount;
 
-    // Predictive: Add 15% to simulate future crowd growth
-    if (settings.predictive) {
-      simulatedPresent = Math.min(venue.maxCapacity, Math.floor(simulatedPresent * 1.15));
+    // Time Shift: Adjust crowds based on the past/future slider
+    if (settings.timeShift !== 0) {
+      // Mock logic: every hour shifts the current capacity by 5% 
+      const shiftFactor = 1 + (settings.timeShift * 0.05);
+      simulatedPresent = Math.min(venue.maxCapacity, Math.max(0, Math.floor(simulatedPresent * shiftFactor)));
     }
 
     // Weather: If active, randomly drop outdoor venue counts by 30%
