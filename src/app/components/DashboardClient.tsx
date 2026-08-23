@@ -14,12 +14,11 @@ import { Settings2 } from 'lucide-react';
 import DashboardTopbar from './DashboardTopbar';
 
 export interface AppSettings {
-  timeShift: number; // Changed from predictive: boolean
-  weather: boolean;
-  sensitivity: 'low' | 'normal' | 'high';
+  timeShift: number; 
   colorblind: boolean;
   nightVision: boolean;
   gridDensity: 'comfortable' | 'compact';
+  deviceView: 'mobile' | 'tablet' | 'desktop'; // <-- 1. Add this line
 }
 
 function fluctuateCount(current: number, max: number, delta: number): number {
@@ -28,7 +27,7 @@ function fluctuateCount(current: number, max: number, delta: number): number {
   return Math.max(0, Math.min(max, next));
 }
 
-export default function DashboardClient() {
+export default function DashboardClient() {    // DashboardClient function
   const [venues, setVenues] = useState<Venue[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [filterCategory, setFilterCategory] = useState<string>('ALL');
@@ -41,12 +40,11 @@ export default function DashboardClient() {
   const prevHighRisk = useRef<string[]>([]);
   
   const [settings, setSettings] = useState<AppSettings>({
-    timeShift: 0, // 0 represents "Live" (Current Time)
-    weather: true,
-    sensitivity: 'normal',
+    timeShift: 0, 
     colorblind: false,
     nightVision: false,
     gridDensity: 'comfortable',
+    deviceView: 'desktop', // <-- 2. Set default to desktop/laptop
   });
 
   // Load venues from localStorage on mount
