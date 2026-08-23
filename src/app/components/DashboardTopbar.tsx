@@ -6,7 +6,7 @@ import { AppSettings } from './DashboardClient';
 import { 
   Activity, Bell, Settings, Shield, AlertTriangle, X, 
   Lock, EyeOff, Server, BrainCircuit, Eye, LayoutGrid, Moon,
-  Smartphone, Tablet, Laptop
+  Smartphone, Tablet, Laptop, PlayCircle
 } from 'lucide-react';
 import { Venue } from './venueData';
 
@@ -33,6 +33,27 @@ export default function DashboardTopbar({
     setIsAlertsOpen(menu === 'alerts' ? !isAlertsOpen : false);
     setIsShieldOpen(menu === 'shield' ? !isShieldOpen : false);
     setIsSettingsOpen(menu === 'settings' ? !isSettingsOpen : false);
+  };
+
+  // --- CSV EXPORT FUNCTION ---
+  const handleExportCSV = () => {
+    const headers = ['Venue_Name', 'Category', 'Label_Density', 'Present_Count', 'Waiting_Queue', 'Max_Capacity', 'Occupancy_Pct'];
+    
+    const rows = venues.map(v => {
+      const pct = Math.round((v.presentCount / v.maxCapacity) * 100);
+      const status = pct >= 90 ? 'CRITICAL' : pct >= 75 ? 'HIGH' : pct >= 50 ? 'MEDIUM' : 'LOW';
+      // Formatted perfectly for a Pandas DataFrame
+      return `"${v.name}","${v.category}","${status}",${v.presentCount},${v.waitingCount},${v.maxCapacity},${pct}`;
+    });
+
+    const csvContent = "data:text/csv;charset=utf-8," + [headers.join(','), ...rows].join('\n');
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement('a');
+    link.setAttribute('href', encodedUri);
+    link.setAttribute('download', `crowd_dataset_sim_${new Date().getTime()}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   };
 
   return (
@@ -239,36 +260,65 @@ export default function DashboardTopbar({
 
                   <div className="p-4 space-y-5">
                     
-                    {/* AI ENGINE TAB (Simplified!) */}
+                    {/* AI ENGINE TAB */}
                     {settingsTab === 'ai' && (
-                      <div className="space-y-3">
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <div className="flex items-center gap-2">
-                              <Activity size={14} style={{ color: 'var(--foreground)' }} />
-                              <span className="text-sm font-medium" style={{ color: 'var(--foreground)' }}>Timeline Forecaster</span>
+                      <div className="space-y-4">
+                        <div className="space-y-3">
+                          <div className="flex items-center justify-between">
+                            <div>
+                              <div className="flex items-center gap-2">
+                                <Activity size={14} style={{ color: 'var(--foreground)' }} />
+                                <span className="text-sm font-medium" style={{ color: 'var(--foreground)' }}>Timeline Forecaster</span>
+                              </div>
+                              <p className="text-[10px] mt-0.5" style={{ color: 'var(--muted-foreground)' }}>Shift data from -12h past to +12h future</p>
                             </div>
-                            <p className="text-[10px] mt-0.5" style={{ color: 'var(--muted-foreground)' }}>Shift data from -12h past to +12h future</p>
+                            <div className="text-xs font-bold" style={{ color: settings.timeShift === 0 ? 'var(--primary)' : settings.timeShift > 0 ? '#facc15' : '#60a5fa' }}>
+                              {settings.timeShift === 0 ? 'LIVE' : settings.timeShift > 0 ? `+${settings.timeShift} hrs` : `${settings.timeShift} hrs`}
+                            </div>
                           </div>
-                          <div className="text-xs font-bold" style={{ color: settings.timeShift === 0 ? 'var(--primary)' : settings.timeShift > 0 ? '#facc15' : '#60a5fa' }}>
-                            {settings.timeShift === 0 ? 'LIVE' : settings.timeShift > 0 ? `+${settings.timeShift} hrs` : `${settings.timeShift} hrs`}
+                          
+                          <input 
+                            type="range" 
+                            min="-12" 
+                            max="12" 
+                            step="1" 
+                            value={settings.timeShift} 
+                            disabled={settings.autoPilot}
+                            onChange={(e) => onUpdateSettings({ ...settings, timeShift: parseInt(e.target.value) })}
+                            className={`w-full h-1.5 rounded-full appearance-none ${settings.autoPilot ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'}`}
+                            style={{ background: 'var(--surface-3)', accentColor: 'var(--primary)' }}
+                          />
+                          <div className="flex justify-between text-[10px]" style={{ color: 'var(--muted-foreground)' }}>
+                            <span>-12h</span>
+                            <span>Live</span>
+                            <span>+12h</span>
                           </div>
                         </div>
-                        
-                        <input 
-                          type="range" 
-                          min="-12" 
-                          max="12" 
-                          step="1" 
-                          value={settings.timeShift} 
-                          onChange={(e) => onUpdateSettings({ ...settings, timeShift: parseInt(e.target.value) })}
-                          className="w-full h-1.5 rounded-full appearance-none cursor-pointer"
-                          style={{ background: 'var(--surface-3)', accentColor: 'var(--primary)' }}
-                        />
-                        <div className="flex justify-between text-[10px]" style={{ color: 'var(--muted-foreground)' }}>
-                          <span>-12h</span>
-                          <span>Live</span>
-                          <span>+12h</span>
+
+                        {/* NEW: AUTO-PILOT TOGGLE */}
+                        <div className="flex items-center justify-between pt-2 border-t" style={{ borderColor: 'var(--border)' }}>
+                          <div>
+                            <div className="flex items-center gap-2">
+                              <PlayCircle size={14} style={{ color: 'var(--foreground)' }} />
+                              <span className="text-sm font-medium" style={{ color: 'var(--foreground)' }}>Exhibition Auto-Pilot</span>
+                            </div>
+                            <p className="text-[10px] mt-0.5" style={{ color: 'var(--muted-foreground)' }}>Hands-free timeline loop</p>
+                          </div>
+                          <div onClick={() => onUpdateSettings({ ...settings, autoPilot: !settings.autoPilot, timeShift: 0 })} className="w-8 h-4 rounded-full flex items-center p-0.5 cursor-pointer transition-colors" style={{ background: settings.autoPilot ? 'var(--primary)' : 'var(--surface-3)' }}>
+                            <div className={`w-3 h-3 rounded-full bg-white transform transition-transform ${settings.autoPilot ? 'translate-x-4' : ''}`}></div>
+                          </div>
+                        </div>
+
+                        {/* NEW: CSV EXPORT */}
+                        <div className="pt-2">
+                          <button 
+                            onClick={handleExportCSV}
+                            className="w-full flex items-center justify-center gap-2 py-2 rounded-lg text-xs font-semibold transition-colors hover:bg-white/10"
+                            style={{ background: 'rgba(34,211,238,0.1)', color: 'var(--primary)', border: '1px solid rgba(34,211,238,0.2)' }}
+                          >
+                            <Download size={14} />
+                            Export Current State (CSV)
+                          </button>
                         </div>
                       </div>
                     )}
