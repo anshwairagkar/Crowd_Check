@@ -312,17 +312,6 @@ export default function DashboardTopbar({
                             <button onClick={() => onUpdateSettings({ ...settings, gridDensity: 'compact' })} className="flex-1 py-1.5 text-xs rounded-md border transition-colors" style={{ borderColor: settings.gridDensity === 'compact' ? 'var(--primary)' : 'var(--border)', color: settings.gridDensity === 'compact' ? 'var(--primary)' : 'var(--muted-foreground)', background: settings.gridDensity === 'compact' ? 'rgba(34,211,238,0.1)' : 'transparent' }}>Compact View</button>
                           </div>
                         </div>
-                        {/* Grid Density Block (Existing) */}
-                        <div className="space-y-2 pt-2 border-t" style={{ borderColor: 'var(--border)' }}>
-                          <div className="flex items-center gap-2">
-                            <LayoutGrid size={14} style={{ color: 'var(--foreground)' }} />
-                            <span className="text-sm font-medium" style={{ color: 'var(--foreground)' }}>Grid Density</span>
-                          </div>
-                          <div className="flex gap-2">
-                            <button onClick={() => onUpdateSettings({ ...settings, gridDensity: 'comfortable' })} className="flex-1 py-1.5 text-xs rounded-md border transition-colors" style={{ borderColor: settings.gridDensity === 'comfortable' ? 'var(--primary)' : 'var(--border)', color: settings.gridDensity === 'comfortable' ? 'var(--primary)' : 'var(--muted-foreground)', background: settings.gridDensity === 'comfortable' ? 'rgba(34,211,238,0.1)' : 'transparent' }}>Comfortable</button>
-                            <button onClick={() => onUpdateSettings({ ...settings, gridDensity: 'compact' })} className="flex-1 py-1.5 text-xs rounded-md border transition-colors" style={{ borderColor: settings.gridDensity === 'compact' ? 'var(--primary)' : 'var(--border)', color: settings.gridDensity === 'compact' ? 'var(--primary)' : 'var(--muted-foreground)', background: settings.gridDensity === 'compact' ? 'rgba(34,211,238,0.1)' : 'transparent' }}>Compact View</button>
-                          </div>
-                        </div>
 
                         {/* NEW: DEVICE SIMULATOR BLOCK */}
                         <div className="space-y-2 pt-2 border-t" style={{ borderColor: 'var(--border)' }}>
