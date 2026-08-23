@@ -18,7 +18,8 @@ export interface AppSettings {
   colorblind: boolean;
   nightVision: boolean;
   gridDensity: 'comfortable' | 'compact';
-  deviceView: 'mobile' | 'tablet' | 'desktop'; // <-- 1. Add this line
+  deviceView: 'mobile' | 'tablet' | 'desktop';
+  autoPilot: boolean;
 }
 
 function fluctuateCount(current: number, max: number, delta: number): number {
@@ -45,6 +46,7 @@ export default function DashboardClient() {    // DashboardClient function
     nightVision: false,
     gridDensity: 'comfortable',
     deviceView: 'desktop', // <-- 2. Set default to desktop/laptop
+    autoPilot: false,
   });
 
   // Load venues from localStorage on mount
@@ -109,6 +111,23 @@ export default function DashboardClient() {    // DashboardClient function
 
     return () => clearInterval(interval);
   }, [isSimulating, refreshInterval, venues.length]);
+
+  // --- NEW: AUTO-PILOT LOOP ---
+  useEffect(() => {
+    if (!settings.autoPilot) return;
+    
+    let direction = 1; // 1 for forward, -1 for backward
+    const interval = setInterval(() => {
+      setSettings(prev => {
+        let nextShift = prev.timeShift + direction;
+        if (nextShift >= 12) direction = -1; // Bounce back
+        if (nextShift <= -12) direction = 1; // Bounce forward
+        return { ...prev, timeShift: nextShift };
+      });
+    }, 1500); // Moves the slider every 1.5 seconds
+
+    return () => clearInterval(interval);
+  }, [settings.autoPilot]);
 
   // Admin handlers
   const handleAddVenue = useCallback((venue: Venue) => {
