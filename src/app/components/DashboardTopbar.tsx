@@ -5,7 +5,8 @@ import AppLogo from '@/components/ui/AppLogo';
 import { AppSettings } from './DashboardClient';
 import { 
   Activity, Bell, Settings, Shield, AlertTriangle, X, 
-  Lock, EyeOff, Server, BrainCircuit, Eye, LayoutGrid, Moon 
+  Lock, EyeOff, Server, BrainCircuit, Eye, LayoutGrid, Moon,
+  Smartphone, Tablet, Laptop
 } from 'lucide-react';
 import { Venue } from './venueData';
 
@@ -311,9 +312,50 @@ export default function DashboardTopbar({
                             <button onClick={() => onUpdateSettings({ ...settings, gridDensity: 'compact' })} className="flex-1 py-1.5 text-xs rounded-md border transition-colors" style={{ borderColor: settings.gridDensity === 'compact' ? 'var(--primary)' : 'var(--border)', color: settings.gridDensity === 'compact' ? 'var(--primary)' : 'var(--muted-foreground)', background: settings.gridDensity === 'compact' ? 'rgba(34,211,238,0.1)' : 'transparent' }}>Compact View</button>
                           </div>
                         </div>
+                        {/* Grid Density Block (Existing) */}
+                        <div className="space-y-2 pt-2 border-t" style={{ borderColor: 'var(--border)' }}>
+                          <div className="flex items-center gap-2">
+                            <LayoutGrid size={14} style={{ color: 'var(--foreground)' }} />
+                            <span className="text-sm font-medium" style={{ color: 'var(--foreground)' }}>Grid Density</span>
+                          </div>
+                          <div className="flex gap-2">
+                            <button onClick={() => onUpdateSettings({ ...settings, gridDensity: 'comfortable' })} className="flex-1 py-1.5 text-xs rounded-md border transition-colors" style={{ borderColor: settings.gridDensity === 'comfortable' ? 'var(--primary)' : 'var(--border)', color: settings.gridDensity === 'comfortable' ? 'var(--primary)' : 'var(--muted-foreground)', background: settings.gridDensity === 'comfortable' ? 'rgba(34,211,238,0.1)' : 'transparent' }}>Comfortable</button>
+                            <button onClick={() => onUpdateSettings({ ...settings, gridDensity: 'compact' })} className="flex-1 py-1.5 text-xs rounded-md border transition-colors" style={{ borderColor: settings.gridDensity === 'compact' ? 'var(--primary)' : 'var(--border)', color: settings.gridDensity === 'compact' ? 'var(--primary)' : 'var(--muted-foreground)', background: settings.gridDensity === 'compact' ? 'rgba(34,211,238,0.1)' : 'transparent' }}>Compact View</button>
+                          </div>
+                        </div>
+
+                        {/* NEW: DEVICE SIMULATOR BLOCK */}
+                        <div className="space-y-2 pt-2 border-t" style={{ borderColor: 'var(--border)' }}>
+                          <div className="flex items-center gap-2">
+                            <Laptop size={14} style={{ color: 'var(--foreground)' }} />
+                            <span className="text-sm font-medium" style={{ color: 'var(--foreground)' }}>Device Preview</span>
+                          </div>
+                          <div className="flex gap-2">
+                            <button 
+                              onClick={() => onUpdateSettings({ ...settings, deviceView: 'mobile' })} 
+                              className="flex-1 py-1.5 text-xs rounded-md border flex items-center justify-center gap-1.5 transition-colors" 
+                              style={{ borderColor: settings.deviceView === 'mobile' ? 'var(--primary)' : 'var(--border)', color: settings.deviceView === 'mobile' ? 'var(--primary)' : 'var(--muted-foreground)', background: settings.deviceView === 'mobile' ? 'rgba(34,211,238,0.1)' : 'transparent' }}
+                            >
+                              <Smartphone size={12} /> Mobile
+                            </button>
+                            <button 
+                              onClick={() => onUpdateSettings({ ...settings, deviceView: 'tablet' })} 
+                              className="flex-1 py-1.5 text-xs rounded-md border flex items-center justify-center gap-1.5 transition-colors" 
+                              style={{ borderColor: settings.deviceView === 'tablet' ? 'var(--primary)' : 'var(--border)', color: settings.deviceView === 'tablet' ? 'var(--primary)' : 'var(--muted-foreground)', background: settings.deviceView === 'tablet' ? 'rgba(34,211,238,0.1)' : 'transparent' }}
+                            >
+                              <Tablet size={12} /> Tablet
+                            </button>
+                            <button 
+                              onClick={() => onUpdateSettings({ ...settings, deviceView: 'desktop' })} 
+                              className="flex-1 py-1.5 text-xs rounded-md border flex items-center justify-center gap-1.5 transition-colors" 
+                              style={{ borderColor: settings.deviceView === 'desktop' ? 'var(--primary)' : 'var(--border)', color: settings.deviceView === 'desktop' ? 'var(--primary)' : 'var(--muted-foreground)', background: settings.deviceView === 'desktop' ? 'rgba(34,211,238,0.1)' : 'transparent' }}
+                            >
+                              <Laptop size={12} /> Laptop
+                            </button>
+                          </div>
+                        </div>
                       </>
                     )}
-
                   </div>
                 </div>
               )}
