@@ -279,7 +279,14 @@ export default function DashboardClient() {    // DashboardClient function
         />
       )}
 
-      <main className="max-w-screen-2xl mx-auto px-4 lg:px-8 xl:px-10 2xl:px-16 py-6 space-y-6">
+      {/* Dynamic Device Wrapper */}
+      <main 
+        className={`mx-auto px-4 lg:px-8 xl:px-10 py-6 space-y-6 transition-all duration-500 ease-in-out ${
+          settings.deviceView === 'mobile' ? 'max-w-[430px] border-x border-dashed border-white/20 bg-black/20 shadow-2xl' : 
+          settings.deviceView === 'tablet' ? 'max-w-[820px] border-x border-dashed border-white/20 bg-black/20 shadow-2xl' : 
+          'max-w-screen-2xl'
+        }`}
+      >
         {/* Live ticker */}
         <LiveTickerBar venues={simulatedVenues} lastRefresh={lastRefresh} />
 
