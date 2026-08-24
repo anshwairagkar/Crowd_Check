@@ -6,7 +6,7 @@ import { AppSettings } from './DashboardClient';
 import { 
   Activity, Bell, Settings, Shield, AlertTriangle, X, 
   Lock, EyeOff, Server, BrainCircuit, Eye, LayoutGrid, Moon,
-  Smartphone, Tablet, Laptop, Download, PlayCircle
+  Smartphone, Tablet, Laptop, Download, PlayCircle, FileJson, Printer
 } from 'lucide-react';
 import { Venue } from './venueData';
 
@@ -49,6 +49,32 @@ export default function DashboardTopbar({
     const link = document.createElement('a');
     link.setAttribute('href', encodedUri);
     link.setAttribute('download', `crowd_dataset_sim_${new Date().getTime()}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  // --- JSON EXPORT FUNCTION ---
+  const handleExportJSON = () => {
+    const data = venues.map(v => {
+      const pct = Math.round((v.presentCount / v.maxCapacity) * 100);
+      return {
+        venueName: v.name,
+        category: v.category,
+        densityStatus: pct >= 90 ? 'CRITICAL' : pct >= 75 ? 'HIGH' : pct >= 50 ? 'MEDIUM' : 'LOW',
+        metrics: {
+          presentCount: v.presentCount,
+          waitingQueue: v.waitingCount,
+          maxCapacity: v.maxCapacity,
+          occupancyPercent: pct
+        }
+      };
+    });
+
+    const jsonString = `data:text/json;charset=utf-8,${encodeURIComponent(JSON.stringify(data, null, 2))}`;
+    const link = document.createElement('a');
+    link.setAttribute('href', jsonString);
+    link.setAttribute('download', `crowd_dataset_sim_${new Date().getTime()}.json`);
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -209,11 +235,20 @@ export default function DashboardTopbar({
                           </div>
                         </div>
 
-                        {/* CSV EXPORT */}
+                        {/* MULTI-FORMAT EXPORT */}
                         <div className="pt-2">
-                          <button onClick={handleExportCSV} className="w-full flex items-center justify-center gap-2 py-2 rounded-lg text-xs font-semibold transition-colors hover:bg-white/10" style={{ background: 'rgba(34,211,238,0.1)', color: 'var(--primary)', border: '1px solid rgba(34,211,238,0.2)' }}>
-                            <Download size={14} />Export Current State (CSV)
-                          </button>
+                          <p className="text-[10px] mb-2 font-medium" style={{ color: 'var(--muted-foreground)' }}>EXPORT DATASET</p>
+                          <div className="flex gap-2">
+                            <button onClick={handleExportCSV} className="flex-1 flex items-center justify-center gap-1.5 py-1.5 rounded-lg text-xs font-semibold transition-colors hover:bg-white/10" style={{ background: 'rgba(34,211,238,0.1)', color: 'var(--primary)', border: '1px solid rgba(34,211,238,0.2)' }}>
+                              <Download size={12} /> CSV
+                            </button>
+                            <button onClick={handleExportJSON} className="flex-1 flex items-center justify-center gap-1.5 py-1.5 rounded-lg text-xs font-semibold transition-colors hover:bg-white/10" style={{ background: 'rgba(34,211,238,0.1)', color: 'var(--primary)', border: '1px solid rgba(34,211,238,0.2)' }}>
+                              <FileJson size={12} /> JSON
+                            </button>
+                            <button onClick={() => window.print()} className="flex-1 flex items-center justify-center gap-1.5 py-1.5 rounded-lg text-xs font-semibold transition-colors hover:bg-white/10" style={{ background: 'rgba(34,211,238,0.1)', color: 'var(--primary)', border: '1px solid rgba(34,211,238,0.2)' }}>
+                              <Printer size={12} /> PDF
+                            </button>
+                          </div>
                         </div>
                       </div>
                     )}
