@@ -191,6 +191,27 @@ export default function DashboardClient() {
         .colorblind-theme { filter: hue-rotate(50deg) saturate(1.5) !important; }
         .night-vision-theme { filter: grayscale(100%) sepia(100%) hue-rotate(180deg) saturate(300%) brightness(45%) contrast(120%) !important; background-color: #030712 !important; }
         .min-h-screen { transition: filter 0.5s ease, background-color 0.5s ease; }
+        
+        /* 🔴 NEW: FORCE PERFECT PDF PRINTING 🔴 */
+        @media print {
+          @page { 
+            size: landscape; /* Force wide layout */
+            margin: 10mm; 
+          }
+          * {
+            -webkit-print-color-adjust: exact !important; /* Force browser to print dark backgrounds */
+            print-color-adjust: exact !important;
+          }
+          body {
+            background-color: #060c18 !important; /* Keep the dark theme */
+          }
+          button { 
+            display: none !important; /* Hide all clickable buttons on the PDF */
+          }
+          .grid > div {
+            break-inside: avoid; /* Prevent venue cards from getting cut in half across pages */
+          }
+        }
       `}</style>
 
       <DashboardTopbar 
