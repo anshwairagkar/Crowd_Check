@@ -71,6 +71,14 @@ export default function DashboardTopbar({
       };
     });
 
+    // --- PDF EXPORT FUNCTION ---
+  const handleExportPDF = () => {
+    setIsSettingsOpen(false); // 1. Force the modal to close
+    setTimeout(() => {
+      window.print(); // 2. Wait 400ms for it to disappear, then print!
+    }, 400);
+  };
+
     const jsonString = `data:text/json;charset=utf-8,${encodeURIComponent(JSON.stringify(data, null, 2))}`;
     const link = document.createElement('a');
     link.setAttribute('href', jsonString);
@@ -245,7 +253,7 @@ export default function DashboardTopbar({
                             <button onClick={handleExportJSON} className="flex-1 flex items-center justify-center gap-1.5 py-1.5 rounded-lg text-xs font-semibold transition-colors hover:bg-white/10" style={{ background: 'rgba(34,211,238,0.1)', color: 'var(--primary)', border: '1px solid rgba(34,211,238,0.2)' }}>
                               <FileJson size={12} /> JSON
                             </button>
-                            <button onClick={() => window.print()} className="flex-1 flex items-center justify-center gap-1.5 py-1.5 rounded-lg text-xs font-semibold transition-colors hover:bg-white/10" style={{ background: 'rgba(34,211,238,0.1)', color: 'var(--primary)', border: '1px solid rgba(34,211,238,0.2)' }}>
+                            <button onClick={handleExportPDF} className="flex-1 flex items-center justify-center gap-1.5 py-1.5 rounded-lg text-xs font-semibold transition-colors hover:bg-white/10" style={{ background: 'rgba(34,211,238,0.1)', color: 'var(--primary)', border: '1px solid rgba(34,211,238,0.2)' }}>
                               <Printer size={12} /> PDF
                             </button>
                           </div>
