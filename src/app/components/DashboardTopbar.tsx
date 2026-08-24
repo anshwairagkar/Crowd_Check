@@ -71,14 +71,6 @@ export default function DashboardTopbar({
       };
     });
 
-    // --- PDF EXPORT FUNCTION ---
-  const handleExportPDF = () => {
-    setIsSettingsOpen(false); // 1. Force the modal to close
-    setTimeout(() => {
-      window.print(); // 2. Wait 400ms for it to disappear, then print!
-    }, 400);
-  };
-
     const jsonString = `data:text/json;charset=utf-8,${encodeURIComponent(JSON.stringify(data, null, 2))}`;
     const link = document.createElement('a');
     link.setAttribute('href', jsonString);
@@ -86,6 +78,14 @@ export default function DashboardTopbar({
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
+  };
+
+  // --- PDF EXPORT FUNCTION ---
+  const handleExportPDF = () => {
+    setIsSettingsOpen(false); // 1. Force the modal to close
+    setTimeout(() => {
+      window.print(); // 2. Wait 400ms for it to disappear, then print!
+    }, 400);
   };
 
   return (
