@@ -1,11 +1,19 @@
-import './globals.css';
-import type { Metadata } from 'next';
+import React from 'react';
+import type { Metadata, Viewport } from 'next';
+import { DM_Sans } from 'next/font/google';
+import { Analytics } from '@vercel/analytics/next';
+
+// This is the magic line that brings all your styling back!
+import '../styles/tailwind.css'; 
+
+// Initialize your custom font
+const dmSans = DM_Sans({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
   title: 'Crowd Check AI',
   description: 'Real-Time Crowd Monitoring Dashboard',
-  // ADD THIS VERIFICATION BLOCK:
   verification: {
+    // 🔴 PASTE YOUR ACTUAL GOOGLE CODE STRING HERE:
     google: 'RKX2s4HVwmz8ld60W_fz0nD5U0MPANbP3r8iQMahR8I', 
   },
 };
@@ -16,14 +24,17 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en">
-      <body>{children}</body>
+    <html lang="en" className={dmSans.className}>
+      <body>
+        {children}
+        <Analytics />
+      </body>
     </html>
   );
 }
 
 
-// Previous befor Meta varification 
+// Previous before Meta varification 
 
 // import React from 'react';
 // import type { Metadata, Viewport } from 'next';
