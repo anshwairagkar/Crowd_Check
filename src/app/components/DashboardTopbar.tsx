@@ -142,7 +142,7 @@ export default function DashboardTopbar({
                         <div className="flex items-center gap-2"><EyeOff size={14} style={{ color: 'var(--primary)' }} /><span className="text-sm" style={{ color: 'var(--foreground)' }}>Privacy Masking</span></div>
                         <div className="w-8 h-4 rounded-full flex items-center p-0.5 cursor-pointer" style={{ background: 'var(--primary)' }}><div className="w-3 h-3 rounded-full bg-white transform translate-x-4"></div></div>
                       </div>
-                      <p className="text-xs mt-2" style={{ color: 'var(--muted-foreground)' }}>AI blurs faces in CCTV feeds to protect identity.</p>
+                      <p className="text-xs mt-2" style={{ color: 'var(--muted-foreground)' }}>Transforming human presence into dynamic data points, securing absolute privacy without losing operational insights 🛡️ </p>
                     </div>
                   </div>
                 </div>
