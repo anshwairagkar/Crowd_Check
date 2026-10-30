@@ -204,7 +204,7 @@ export default function DashboardTopbar({
                             </div>
                             <p className="text-[10px] mt-0.5" style={{ color: 'var(--muted-foreground)' }}>Hands-free timeline loop</p>
                           </div>
-                          <div onClick={() => onUpdateSettings({ ...settings, autoPilot: !settings.autoPilot, timeShift: 0 })} className="w-8 h-4 rounded-full flex items-center p-0.5 cursor-pointer transition-colors" style={{ background: settings.autoPilot ? 'var(--primary)' : 'var(--surface-3)' }}>
+                          <div onClick={() => onUpdateSettings({ ...settings, autoPilot: !settings.autoPilot, timeShift: 0, autoPilotSpeed: 3.0})} className="w-8 h-4 rounded-full flex items-center p-0.5 cursor-pointer transition-colors" style={{ background: settings.autoPilot ? 'var(--primary)' : 'var(--surface-3)' }}>
                             <div className={`w-3 h-3 rounded-full bg-white transform transition-transform ${settings.autoPilot ? 'translate-x-4' : ''}`}></div>
                           </div>
                         </div>
