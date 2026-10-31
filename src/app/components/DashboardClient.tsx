@@ -102,7 +102,7 @@ export default function DashboardClient() {
         if (nextShift <= -12) direction = 1; 
         return { ...prev, timeShift: nextShift };
       });
-    }, 1500);
+    }, 500);
     return () => clearInterval(interval);
   }, [settings.autoPilot]);
 
