@@ -17,7 +17,8 @@ interface AdminPanelProps {
 
 const CATEGORIES = [
   'Food & Dining', 'Hospitality', 'Retail', 'Transport Hub', 'Cultural',
-  'Healthcare', 'Education', 'Entertainment', 'Government', 'Other',
+  'Healthcare', 'Education', 'Entertainment', 'Government', 'Traffic Intersection',
+  'Other',
 ];
 
 interface FormState {
