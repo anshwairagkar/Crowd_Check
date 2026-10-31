@@ -88,7 +88,7 @@ export default function SummaryKPIRow({ venues, onVenuesAtRiskClick }: SummaryKP
       subtext: 'max simultaneous',
       icon: TrendingUp,
       color: 'var(--muted-foreground)',
-      bg: 'rgba(30,41,59,0.6)',
+      bg: 'rgba(109, 217, 227, 0.6)',
       border: 'var(--border)',
       trend: null,
     },
