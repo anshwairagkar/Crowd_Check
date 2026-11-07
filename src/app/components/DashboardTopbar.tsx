@@ -6,7 +6,7 @@ import { AppSettings } from './DashboardClient';
 import { 
   Activity, Bell, Settings, Shield, AlertTriangle, X, 
   Lock, EyeOff, Server, BrainCircuit, Eye, LayoutGrid, Moon,
-  Smartphone, Tablet, Laptop, Download, PlayCircle
+  Smartphone, Tablet, Laptop, Download, PlayCircle, Sun
 } from 'lucide-react';
 import { Venue } from './venueData';
 
@@ -221,6 +221,38 @@ export default function DashboardTopbar({
                     {/* CONTROL ROOM TAB */}
                     {settingsTab === 'accessibility' && (
                       <>
+                        {/* Theme Selection - Added above Colorblind Mode */}
+                        <div className="pb-3 mb-1 border-b" style={{ borderColor: 'var(--border)' }}>
+                          <div className="flex items-center gap-2 mb-3">
+                            <Sun size={14} style={{ color: 'var(--foreground)' }} />
+                            <span className="text-sm font-medium" style={{ color: 'var(--foreground)' }}>Interface Theme</span>
+                          </div>
+                          <div className="flex rounded-lg p-1" style={{ background: 'var(--surface-3)' }}>
+                            <button
+                              onClick={() => onUpdateSettings({ ...settings, theme: 'dark' })}
+                              className={`flex-1 py-1.5 text-xs font-semibold rounded-md transition-all ${
+                                settings.theme === 'dark' 
+                                  ? 'shadow-sm' 
+                                  : 'hover:bg-white/5'
+                              }`}
+                              style={settings.theme === 'dark' ? { background: 'rgba(34,211,238,0.15)', color: 'var(--primary)', border: '1px solid rgba(34,211,238,0.3)' } : { color: 'var(--muted-foreground)' }}
+                            >
+                              Dark Mode
+                            </button>
+                            <button
+                              onClick={() => onUpdateSettings({ ...settings, theme: 'light' })}
+                              className={`flex-1 py-1.5 text-xs font-semibold rounded-md transition-all ${
+                                settings.theme === 'light' 
+                                  ? 'shadow-sm' 
+                                  : 'hover:bg-white/5'
+                              }`}
+                              style={settings.theme === 'light' ? { background: 'rgba(34,211,238,0.15)', color: 'var(--primary)', border: '1px solid rgba(34,211,238,0.3)' } : { color: 'var(--muted-foreground)' }}
+                            >
+                              Light Mode
+                            </button>
+                          </div>
+                        </div>
+
                         <div className="flex items-center justify-between">
                           <div>
                             <div className="flex items-center gap-2"><Eye size={14} style={{ color: 'var(--foreground)' }} /><span className="text-sm font-medium" style={{ color: 'var(--foreground)' }}>Colorblind Mode</span></div>
