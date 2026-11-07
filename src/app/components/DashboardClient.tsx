@@ -19,6 +19,7 @@ export interface AppSettings {
   gridDensity: 'comfortable' | 'compact';
   deviceView: 'mobile' | 'tablet' | 'desktop';
   autoPilot: boolean;
+  theme: 'dark' | 'light';
 }
 
 function fluctuateCount(current: number, max: number, delta: number): number {
@@ -50,6 +51,7 @@ export default function DashboardClient() {
     gridDensity: 'comfortable',
     deviceView: 'desktop',
     autoPilot: false, 
+    theme: 'dark',
   });
 
   useEffect(() => {
@@ -257,13 +259,20 @@ export default function DashboardClient() {
   }, []);
 
   return (
-    <div className={`min-h-screen ${settings.colorblind ? 'colorblind-theme' : ''} ${settings.nightVision ? 'night-vision-theme' : ''}`}>
+    <div className={`min-h-screen ${settings.colorblind ? 'colorblind-theme' : ''} ${settings.nightVision ? 'night-vision-theme' : ''} ${settings.theme === 'light' ? 'light-theme' : ''}`}>
       <style>{`
         .colorblind-theme { filter: hue-rotate(50deg) saturate(1.5) !important; }
         .night-vision-theme { filter: grayscale(100%) sepia(100%) hue-rotate(180deg) saturate(300%) brightness(45%) contrast(120%) !important; background-color: #030712 !important; }
+        
+        /* 🔴 NEW: LIGHT MODE CSS INVERSION TRICK 🔴 */
+        .light-theme { 
+          filter: invert(1) hue-rotate(180deg) brightness(1.05) !important; 
+          background-color: #f8fafc !important; 
+        }
+
         .min-h-screen { transition: filter 0.5s ease, background-color 0.5s ease; }
         
-        /* 🔴 NEW: FORCE PERFECT PDF PRINTING 🔴 */
+        /* 🔴 FORCE PERFECT PDF PRINTING 🔴 */
         @media print {
           @page { 
             size: landscape; /* Force wide layout */
