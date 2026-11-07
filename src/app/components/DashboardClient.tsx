@@ -1,16 +1,15 @@
 'use client';
 
 import React, { useState, useEffect, useCallback, useRef } from 'react';
+import { AlertTriangle, ShieldAlert, ArrowRight, ChevronDown, ChevronUp, X, Settings2 } from 'lucide-react';
 import { Toaster, toast } from 'sonner';
 import { Venue, getDensityLevel, checkIsOpen } from './venueData';
 import { loadVenues, saveVenues } from './mockDb';
 import SearchAndGPS from './SearchAndGPS';
 import SummaryKPIRow from './SummaryKPIRow';
 import VenueGrid from './VenueGrid';
-import AlertBanner from './AlertBanner';
 import LiveTickerBar from './LiveTickerBar';
 import AdminPanel from './AdminPanel';
-import { Settings2 } from 'lucide-react';
 import DashboardTopbar from './DashboardTopbar';
 
 export interface AppSettings {
@@ -38,6 +37,10 @@ export default function DashboardClient() {
   const [changedIds, setChangedIds] = useState<Set<string>>(new Set());
   const [showAdmin, setShowAdmin] = useState(false);
   const [filterHighRisk, setFilterHighRisk] = useState(false);
+  
+  // AI Actions State
+  const [showProtocols, setShowProtocols] = useState(false);
+  
   const prevHighRisk = useRef<string[]>([]);
   
   const [settings, setSettings] = useState<AppSettings>({
@@ -77,216 +80,4 @@ export default function DashboardClient() {
         const highRiskNow = updated.filter(v => ['HIGH', 'CRITICAL'].includes(getDensityLevel(v.presentCount, v.maxCapacity))).map(v => v.id);
         const newlyHigh = highRiskNow.filter(id => !prevHighRisk.current.includes(id));
         newlyHigh.forEach(id => {
-          const v = updated.find(x => x.id === id);
-          if (v) toast.error(`⚠ ${v.name} reached HIGH density`, { description: `${v.presentCount} / ${v.maxCapacity} capacity`, duration: 5000 });
-        });
-        prevHighRisk.current = highRiskNow;
-        setChangedIds(new Set(updated.map(v => v.id)));
-        setTimeout(() => setChangedIds(new Set()), 600);
-        return updated;
-      });
-      setLastRefresh(new Date().toLocaleTimeString('en-US', { hour12: false }));
-    }, refreshInterval * 1000);
-
-    return () => clearInterval(interval);
-  }, [isSimulating, refreshInterval, venues.length]);
-
-  // Helper function to generate AI suggestions based on danger levels
-  const getEmergencyProtocols = (occupancyPercentage: number) => {
-    if (occupancyPercentage >= 95) {
-      return [
-        "CRITICAL: Initiate immediate partial evacuation.",
-        "Deploy security team to main entrances to halt inbound foot traffic.",
-        "Switch exterior traffic intersection signals to RED.",
-        "Open all auxiliary and emergency exits."
-      ];
-    } else if (occupancyPercentage >= 85) {
-      return [
-        "WARNING: Throttle entry gates to 50% flow.",
-        "Broadcast crowd dispersal announcements over PA system.",
-        "Prepare emergency exits for potential opening."
-      ];
-    }
-    return []; // No action needed if safe
-  };
-  
-  // --- AUTO-PILOT LOOP ---
-  useEffect(() => {
-    if (!settings.autoPilot) return;
-    let direction = 1; 
-    const interval = setInterval(() => {
-      setSettings(prev => {
-        let nextShift = prev.timeShift + direction;
-        if (nextShift >= 12) direction = -1; 
-        if (nextShift <= -12) direction = 1; 
-        return { ...prev, timeShift: nextShift };
-      });
-    }, 500);
-    return () => clearInterval(interval);
-  }, [settings.autoPilot]);
-
-  const handleAddVenue = useCallback((venue: Venue) => {
-    setVenues(prev => { const updated = [...prev, venue]; saveVenues(updated); return updated; });
-    toast.success(`Venue added: ${venue.name}`, { duration: 3000 });
-  }, []);
-
-  const handleUpdateVenue = useCallback((venue: Venue) => {
-    setVenues(prev => { const updated = prev.map(v => v.id === venue.id ? venue : v); saveVenues(updated); return updated; });
-    toast.success(`Updated: ${venue.name}`, { duration: 3000 });
-  }, []);
-
-  const handleDeleteVenue = useCallback((id: string) => {
-    setVenues(prev => {
-      const target = prev.find(v => v.id === id);
-      const updated = prev.filter(v => v.id !== id);
-      saveVenues(updated);
-      if (target) toast.info(`Removed: ${target.name}`, { duration: 3000 });
-      return updated;
-    });
-  }, []);
-
-  const checkOpenWithOffset = (hours: string, offsetHours: number) => {
-    if (hours === '24/7') return true;
-    try {
-      const now = new Date();
-      now.setHours(now.getHours() + offsetHours);
-      const currentMinutes = now.getHours() * 60 + now.getMinutes();
-      const [startStr, endStr] = hours.split(' - ');
-      if (!startStr || !endStr) return true;
-      const startMins = parseInt(startStr.split(':')[0]) * 60 + parseInt(startStr.split(':')[1]);
-      const endMins = parseInt(endStr.split(':')[0]) * 60 + parseInt(endStr.split(':')[1]);
-      if (startMins <= endMins) return currentMinutes >= startMins && currentMinutes < endMins;
-      return currentMinutes >= startMins || currentMinutes < endMins;
-    } catch (e) { return true; }
-  };
-
-  const simulatedVenues = venues.map(venue => {
-    const isSimulatedOpen = checkOpenWithOffset(venue.openHours, settings.timeShift);
-    const isRealOpen = checkOpenWithOffset(venue.openHours, 0); 
-    
-    const shiftedDate = new Date();
-    shiftedDate.setHours(shiftedDate.getHours() + settings.timeShift);
-    const simulatedLastUpdated = shiftedDate.toLocaleTimeString('en-US', { hour12: false });
-
-    if (!isSimulatedOpen) {
-      return { ...venue, presentCount: 0, waitingCount: 0, lastUpdated: simulatedLastUpdated };
-    }
-
-    let simulatedPresent = venue.presentCount;
-    let simulatedWaiting = venue.waitingCount;
-
-    if (!isRealOpen && isSimulatedOpen) {
-      simulatedPresent = Math.floor(venue.maxCapacity * 0.5); 
-      simulatedWaiting = Math.floor(venue.maxCapacity * 0.05); 
-    }
-
-    if (settings.timeShift !== 0) {
-      const shiftFactor = 1 + (settings.timeShift * 0.05);
-      simulatedPresent = Math.min(venue.maxCapacity, Math.max(0, Math.floor(simulatedPresent * shiftFactor)));
-      simulatedWaiting = Math.max(0, Math.floor(simulatedWaiting * (1 + settings.timeShift * 0.1)));
-    }
-
-    return { ...venue, presentCount: simulatedPresent, waitingCount: simulatedWaiting, lastUpdated: simulatedLastUpdated };
-  });
-
-  const filteredVenues = simulatedVenues.filter(v => {
-    const matchesSearch = v.name.toLowerCase().includes(searchQuery.toLowerCase()) || v.address.toLowerCase().includes(searchQuery.toLowerCase()) || v.category.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesCategory = filterCategory === 'ALL' || v.category === filterCategory;
-    const matchesHighRisk = !filterHighRisk || ['HIGH', 'CRITICAL'].includes(getDensityLevel(v.presentCount, v.maxCapacity));
-    return matchesSearch && matchesCategory && matchesHighRisk;
-  });
-
-  const categories = ['ALL', ...Array.from(new Set(simulatedVenues.map(v => v.category)))];
-  const highRiskVenues = simulatedVenues.filter(v => ['HIGH', 'CRITICAL'].includes(getDensityLevel(v.presentCount, v.maxCapacity)));
-
-  const handleGPSLocate = useCallback((nearestName: string) => {
-    setSearchQuery(nearestName);
-    toast.success(`GPS located: ${nearestName}`, { description: 'Showing nearest venue', duration: 3000 });
-  }, []);
-
-  return (
-    <div className={`min-h-screen ${settings.colorblind ? 'colorblind-theme' : ''} ${settings.nightVision ? 'night-vision-theme' : ''}`}>
-      <style>{`
-        .colorblind-theme { filter: hue-rotate(50deg) saturate(1.5) !important; }
-        .night-vision-theme { filter: grayscale(100%) sepia(100%) hue-rotate(180deg) saturate(300%) brightness(45%) contrast(120%) !important; background-color: #030712 !important; }
-        .min-h-screen { transition: filter 0.5s ease, background-color 0.5s ease; }
-        
-        /* 🔴 NEW: FORCE PERFECT PDF PRINTING 🔴 */
-        @media print {
-          @page { 
-            size: landscape; /* Force wide layout */
-            margin: 10mm; 
-          }
-          * {
-            -webkit-print-color-adjust: exact !important; /* Force browser to print dark backgrounds */
-            print-color-adjust: exact !important;
-          }
-          body {
-            background-color: #060c18 !important; /* Keep the dark theme */
-          }
-          button { 
-            display: none !important; /* Hide all clickable buttons on the PDF */
-          }
-          .grid > div {
-            break-inside: avoid; /* Prevent venue cards from getting cut in half across pages */
-          }
-        }
-      `}</style>
-
-      <DashboardTopbar 
-        venues={simulatedVenues}
-        settings={settings}
-        onUpdateSettings={setSettings}
-      />
-      
-      <Toaster position="bottom-right" theme="dark" toastOptions={{ style: { background: 'var(--surface-2)', border: '1px solid var(--border)', color: 'var(--foreground)' } }} />
-
-      {showAdmin && (
-        <AdminPanel
-          venues={venues} 
-          onAdd={handleAddVenue}
-          onUpdate={handleUpdateVenue}
-          onDelete={handleDeleteVenue}
-          onClose={() => setShowAdmin(false)}
-        />
-      )}
-
-      {/* DYNAMIC DEVICE WRAPPER */}
-      <main 
-        className={`mx-auto px-4 lg:px-8 xl:px-10 py-6 space-y-6 transition-all duration-500 ease-in-out ${
-          settings.deviceView === 'mobile' ? 'max-w-[430px] border-x border-dashed border-white/20 bg-black/20 shadow-2xl' : 
-          settings.deviceView === 'tablet' ? 'max-w-[820px] border-x border-dashed border-white/20 bg-black/20 shadow-2xl' : 
-          'max-w-screen-2xl'
-        }`}
-      >
-        <LiveTickerBar venues={simulatedVenues} lastRefresh={lastRefresh} />
-        {highRiskVenues.length > 0 && <AlertBanner venues={highRiskVenues} />}
-
-        <SearchAndGPS
-          searchQuery={searchQuery} onSearchChange={setSearchQuery} filterCategory={filterCategory}
-          onCategoryChange={setFilterCategory} categories={categories} isSimulating={isSimulating}
-          onToggleSimulation={() => setIsSimulating(s => !s)} refreshInterval={refreshInterval}
-          onRefreshIntervalChange={setRefreshInterval} onGPSLocate={handleGPSLocate} venues={simulatedVenues}
-        />
-
-        <SummaryKPIRow venues={simulatedVenues} onVenuesAtRiskClick={() => setFilterHighRisk(prev => !prev)} />
-
-        <div className="flex items-center justify-between">
-          <p className="text-sm" style={{ color: 'var(--muted-foreground)' }}>
-            <span className="font-semibold" style={{ color: 'var(--foreground)' }}>{filteredVenues.length}</span> venue{filteredVenues.length !== 1 ? 's' : ''} shown
-            {filterHighRisk && (
-              <span className="ml-2 inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium" style={{ background: 'rgba(239,68,68,0.12)', color: 'var(--density-high)', border: '1px solid rgba(239,68,68,0.25)' }}>
-                At Risk only <button onClick={() => setFilterHighRisk(false)} className="ml-1 hover:opacity-70" style={{ lineHeight: 1 }}>×</button>
-              </span>
-            )}
-          </p>
-          <button onClick={() => setShowAdmin(true)} className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition-all hover:scale-105" style={{ background: 'rgba(34,211,238,0.08)', border: '1px solid rgba(34,211,238,0.2)', color: 'var(--primary)' }}>
-            <Settings2 size={15} /> Manage Venues
-          </button>
-        </div>
-
-        <VenueGrid venues={filteredVenues} changedIds={changedIds} searchQuery={searchQuery} density={settings.gridDensity} timeShift={settings.timeShift} />
-      </main>
-    </div>
-  );
-}
+          const v = updated.find(x => x
