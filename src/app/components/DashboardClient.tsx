@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { AlertTriangle, ShieldAlert, ArrowRight, ChevronDown, ChevronUp, X, Settings2 } from 'lucide-react';
+import { AlertTriangle, ShieldAlert, ArrowRight, ChevronDown, ChevronUp, X, Settings2, Download } from 'lucide-react';
 import { Toaster, toast } from 'sonner';
 import { Venue, getDensityLevel, checkIsOpen } from './venueData';
 import { loadVenues, saveVenues } from './mockDb';
@@ -111,6 +111,50 @@ export default function DashboardClient() {
       ];
     }
     return []; // No action needed if safe
+  };
+
+  // NEW: Function to generate and download the Incident Report
+  const handleExportReport = () => {
+    const highRiskVenuesNow = venues.filter(v => ['HIGH', 'CRITICAL'].includes(getDensityLevel(v.presentCount, v.maxCapacity)));
+    if (highRiskVenuesNow.length === 0) {
+        toast.error('No incident to report.');
+        return;
+    }
+
+    const maxRiskPercentageNow = Math.max(...highRiskVenuesNow.map(v => (v.presentCount / v.maxCapacity) * 100));
+
+    let reportContent = `=========================================\n`;
+    reportContent += `   CROWD CHECK AI - INCIDENT REPORT\n`;
+    reportContent += `=========================================\n`;
+    reportContent += `Generated: ${new Date().toLocaleString()}\n`;
+    reportContent += `Operator: Admin / Security Desk\n\n`;
+
+    reportContent += `🚨 CRITICAL VENUES DETECTED:\n`;
+    highRiskVenuesNow.forEach(v => {
+      reportContent += `- ${v.name} | Capacity: ${v.presentCount}/${v.maxCapacity} (${Math.round((v.presentCount/v.maxCapacity)*100)}%)\n`;
+    });
+
+    reportContent += `\n-----------------------------------------\n`;
+    reportContent += `EXECUTED EMERGENCY PROTOCOLS:\n`;
+    getEmergencyProtocols(maxRiskPercentageNow).forEach(step => {
+      reportContent += `[X] ${step}\n`;
+    });
+
+    reportContent += `\n=========================================\n`;
+    reportContent += `End of Log. System ID: ${Date.now()}\n`;
+
+    // Create and download the file
+    const blob = new Blob([reportContent], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `Incident_Log_${Date.now()}.txt`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+    
+    toast.success('Incident Report Generated', { description: 'The official log has been downloaded.' });
   };
   
   // --- AUTO-PILOT LOOP ---
@@ -308,12 +352,23 @@ export default function DashboardClient() {
                     </li>
                   ))}
                 </ul>
-                <button 
-                  onClick={() => setShowProtocols(false)}
-                  className="mt-4 w-full bg-red-500 hover:bg-red-600 text-white font-bold py-2.5 rounded-lg shadow-md transition-colors"
-                >
-                  Acknowledge & Execute Protocols
-                </button>
+                
+                {/* UPGRADED: Two-button layout for Acknowledge and Export */}
+                <div className="mt-5 flex flex-col md:flex-row gap-3">
+                  <button 
+                    onClick={() => setShowProtocols(false)}
+                    className="flex-1 bg-red-500 hover:bg-red-600 text-white font-bold py-2.5 rounded-lg shadow-md transition-colors"
+                  >
+                    Acknowledge & Execute Protocols
+                  </button>
+                  <button 
+                    onClick={handleExportReport}
+                    className="flex items-center justify-center gap-2 px-6 py-2.5 bg-slate-800 hover:bg-slate-700 text-white font-semibold rounded-lg border border-slate-600 transition-colors"
+                  >
+                    <Download className="w-5 h-5" />
+                    Export Incident Log
+                  </button>
+                </div>
               </div>
             )}
           </div>
