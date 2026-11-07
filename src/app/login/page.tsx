@@ -16,6 +16,8 @@ export default function LoginPage() {
     // Check for your exact credentials
     if (username === 'admin' && password === '2009') {
       setError('');
+      // ADD THIS LINE: Save the login status to the browser
+      sessionStorage.setItem('isLoggedIn', 'true'); 
       router.push('/'); // Redirects to your main dashboard
     } else {
       setError('Invalid username or password. Access denied.');
