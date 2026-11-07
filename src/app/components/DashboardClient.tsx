@@ -80,4 +80,270 @@ export default function DashboardClient() {
         const highRiskNow = updated.filter(v => ['HIGH', 'CRITICAL'].includes(getDensityLevel(v.presentCount, v.maxCapacity))).map(v => v.id);
         const newlyHigh = highRiskNow.filter(id => !prevHighRisk.current.includes(id));
         newlyHigh.forEach(id => {
-          const v = updated.find(x => x
+          const v = updated.find(x => x.id === id);
+          if (v) toast.error(`⚠ ${v.name} reached HIGH density`, { description: `${v.presentCount} / ${v.maxCapacity} capacity`, duration: 5000 });
+        });
+        prevHighRisk.current = highRiskNow;
+        setChangedIds(new Set(updated.map(v => v.id)));
+        setTimeout(() => setChangedIds(new Set()), 600);
+        return updated;
+      });
+      setLastRefresh(new Date().toLocaleTimeString('en-US', { hour12: false }));
+    }, refreshInterval * 1000);
+
+    return () => clearInterval(interval);
+  }, [isSimulating, refreshInterval, venues.length]);
+
+  // Helper function to generate AI suggestions based on danger levels
+  const getEmergencyProtocols = (occupancyPercentage: number) => {
+    if (occupancyPercentage >= 95) {
+      return [
+        "CRITICAL: Initiate immediate partial evacuation.",
+        "Deploy security team to main entrances to halt inbound foot traffic.",
+        "Switch exterior traffic intersection signals to RED.",
+        "Open all auxiliary and emergency exits."
+      ];
+    } else if (occupancyPercentage >= 85) {
+      return [
+        "WARNING: Throttle entry gates to 50% flow.",
+        "Broadcast crowd dispersal announcements over PA system.",
+        "Prepare emergency exits for potential opening."
+      ];
+    }
+    return []; // No action needed if safe
+  };
+  
+  // --- AUTO-PILOT LOOP ---
+  useEffect(() => {
+    if (!settings.autoPilot) return;
+    let direction = 1; 
+    const interval = setInterval(() => {
+      setSettings(prev => {
+        let nextShift = prev.timeShift + direction;
+        if (nextShift >= 12) direction = -1; 
+        if (nextShift <= -12) direction = 1; 
+        return { ...prev, timeShift: nextShift };
+      });
+    }, 500);
+    return () => clearInterval(interval);
+  }, [settings.autoPilot]);
+
+  const handleAddVenue = useCallback((venue: Venue) => {
+    setVenues(prev => { const updated = [...prev, venue]; saveVenues(updated); return updated; });
+    toast.success(`Venue added: ${venue.name}`, { duration: 3000 });
+  }, []);
+
+  const handleUpdateVenue = useCallback((venue: Venue) => {
+    setVenues(prev => { const updated = prev.map(v => v.id === venue.id ? venue : v); saveVenues(updated); return updated; });
+    toast.success(`Updated: ${venue.name}`, { duration: 3000 });
+  }, []);
+
+  const handleDeleteVenue = useCallback((id: string) => {
+    setVenues(prev => {
+      const target = prev.find(v => v.id === id);
+      const updated = prev.filter(v => v.id !== id);
+      saveVenues(updated);
+      if (target) toast.info(`Removed: ${target.name}`, { duration: 3000 });
+      return updated;
+    });
+  }, []);
+
+  const checkOpenWithOffset = (hours: string, offsetHours: number) => {
+    if (hours === '24/7') return true;
+    try {
+      const now = new Date();
+      now.setHours(now.getHours() + offsetHours);
+      const currentMinutes = now.getHours() * 60 + now.getMinutes();
+      const [startStr, endStr] = hours.split(' - ');
+      if (!startStr || !endStr) return true;
+      const startMins = parseInt(startStr.split(':')[0]) * 60 + parseInt(startStr.split(':')[1]);
+      const endMins = parseInt(endStr.split(':')[0]) * 60 + parseInt(endStr.split(':')[1]);
+      if (startMins <= endMins) return currentMinutes >= startMins && currentMinutes < endMins;
+      return currentMinutes >= startMins || currentMinutes < endMins;
+    } catch (e) { return true; }
+  };
+
+  const simulatedVenues = venues.map(venue => {
+    const isSimulatedOpen = checkOpenWithOffset(venue.openHours, settings.timeShift);
+    const isRealOpen = checkOpenWithOffset(venue.openHours, 0); 
+    
+    const shiftedDate = new Date();
+    shiftedDate.setHours(shiftedDate.getHours() + settings.timeShift);
+    const simulatedLastUpdated = shiftedDate.toLocaleTimeString('en-US', { hour12: false });
+
+    if (!isSimulatedOpen) {
+      return { ...venue, presentCount: 0, waitingCount: 0, lastUpdated: simulatedLastUpdated };
+    }
+
+    let simulatedPresent = venue.presentCount;
+    let simulatedWaiting = venue.waitingCount;
+
+    if (!isRealOpen && isSimulatedOpen) {
+      simulatedPresent = Math.floor(venue.maxCapacity * 0.5); 
+      simulatedWaiting = Math.floor(venue.maxCapacity * 0.05); 
+    }
+
+    if (settings.timeShift !== 0) {
+      const shiftFactor = 1 + (settings.timeShift * 0.05);
+      simulatedPresent = Math.min(venue.maxCapacity, Math.max(0, Math.floor(simulatedPresent * shiftFactor)));
+      simulatedWaiting = Math.max(0, Math.floor(simulatedWaiting * (1 + settings.timeShift * 0.1)));
+    }
+
+    return { ...venue, presentCount: simulatedPresent, waitingCount: simulatedWaiting, lastUpdated: simulatedLastUpdated };
+  });
+
+  const filteredVenues = simulatedVenues.filter(v => {
+    const matchesSearch = v.name.toLowerCase().includes(searchQuery.toLowerCase()) || v.address.toLowerCase().includes(searchQuery.toLowerCase()) || v.category.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesCategory = filterCategory === 'ALL' || v.category === filterCategory;
+    const matchesHighRisk = !filterHighRisk || ['HIGH', 'CRITICAL'].includes(getDensityLevel(v.presentCount, v.maxCapacity));
+    return matchesSearch && matchesCategory && matchesHighRisk;
+  });
+
+  const categories = ['ALL', ...Array.from(new Set(simulatedVenues.map(v => v.category)))];
+  const highRiskVenues = simulatedVenues.filter(v => ['HIGH', 'CRITICAL'].includes(getDensityLevel(v.presentCount, v.maxCapacity)));
+  
+  // Calculate max danger level dynamically for the AI Protocols
+  const maxRiskPercentage = highRiskVenues.length > 0 
+    ? Math.max(...highRiskVenues.map(v => (v.presentCount / v.maxCapacity) * 100))
+    : 0;
+
+  const handleGPSLocate = useCallback((nearestName: string) => {
+    setSearchQuery(nearestName);
+    toast.success(`GPS located: ${nearestName}`, { description: 'Showing nearest venue', duration: 3000 });
+  }, []);
+
+  return (
+    <div className={`min-h-screen ${settings.colorblind ? 'colorblind-theme' : ''} ${settings.nightVision ? 'night-vision-theme' : ''}`}>
+      <style>{`
+        .colorblind-theme { filter: hue-rotate(50deg) saturate(1.5) !important; }
+        .night-vision-theme { filter: grayscale(100%) sepia(100%) hue-rotate(180deg) saturate(300%) brightness(45%) contrast(120%) !important; background-color: #030712 !important; }
+        .min-h-screen { transition: filter 0.5s ease, background-color 0.5s ease; }
+        
+        /* 🔴 NEW: FORCE PERFECT PDF PRINTING 🔴 */
+        @media print {
+          @page { 
+            size: landscape; /* Force wide layout */
+            margin: 10mm; 
+          }
+          * {
+            -webkit-print-color-adjust: exact !important; /* Force browser to print dark backgrounds */
+            print-color-adjust: exact !important;
+          }
+          body {
+            background-color: #060c18 !important; /* Keep the dark theme */
+          }
+          button { 
+            display: none !important; /* Hide all clickable buttons on the PDF */
+          }
+          .grid > div {
+            break-inside: avoid; /* Prevent venue cards from getting cut in half across pages */
+          }
+        }
+      `}</style>
+
+      <DashboardTopbar 
+        venues={simulatedVenues}
+        settings={settings}
+        onUpdateSettings={setSettings}
+      />
+      
+      <Toaster position="bottom-right" theme="dark" toastOptions={{ style: { background: 'var(--surface-2)', border: '1px solid var(--border)', color: 'var(--foreground)' } }} />
+
+      {showAdmin && (
+        <AdminPanel
+          venues={venues} 
+          onAdd={handleAddVenue}
+          onUpdate={handleUpdateVenue}
+          onDelete={handleDeleteVenue}
+          onClose={() => setShowAdmin(false)}
+        />
+      )}
+
+      {/* DYNAMIC DEVICE WRAPPER */}
+      <main 
+        className={`mx-auto px-4 lg:px-8 xl:px-10 py-6 space-y-6 transition-all duration-500 ease-in-out ${
+          settings.deviceView === 'mobile' ? 'max-w-[430px] border-x border-dashed border-white/20 bg-black/20 shadow-2xl' : 
+          settings.deviceView === 'tablet' ? 'max-w-[820px] border-x border-dashed border-white/20 bg-black/20 shadow-2xl' : 
+          'max-w-screen-2xl'
+        }`}
+      >
+        <LiveTickerBar venues={simulatedVenues} lastRefresh={lastRefresh} />
+        
+        {/* NEW AI PROTOCOLS GLOBAL BANNER */}
+        {highRiskVenues.length > 0 && (
+          <div className="bg-red-500/10 border border-red-500/50 rounded-xl shadow-[0_0_15px_rgba(239,68,68,0.15)] transition-all duration-300">
+            <div className="p-4 flex flex-col md:flex-row md:items-center justify-between gap-4">
+              <div className="flex items-start md:items-center gap-3">
+                <AlertTriangle className="w-6 h-6 text-red-500 animate-pulse mt-1 md:mt-0" />
+                <div>
+                  <h2 className="text-red-400 font-bold text-lg">CRITICAL: {highRiskVenues.length} venue(s) approaching or exceeding safe capacity</h2>
+                  <div className="flex flex-wrap gap-2 mt-2">
+                    {highRiskVenues.map(v => (
+                      <span key={v.id} className="bg-red-500/20 text-red-300 text-xs px-2 py-1 rounded border border-red-500/30">
+                        {v.name} — {Math.round((v.presentCount / v.maxCapacity) * 100)}% full
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              </div>
+              
+              <button 
+                onClick={() => setShowProtocols(!showProtocols)}
+                className="flex items-center justify-center gap-2 bg-red-500/20 hover:bg-red-500/30 text-red-300 px-4 py-2 rounded-lg border border-red-500/30 transition-colors font-semibold shrink-0"
+              >
+                <ShieldAlert className="w-5 h-5" />
+                {showProtocols ? 'Hide Protocols' : 'View AI Protocols'}
+                {showProtocols ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+              </button>
+            </div>
+
+            {showProtocols && (
+              <div className="border-t border-red-500/30 bg-red-950/30 p-5 rounded-b-xl">
+                <p className="text-red-300 text-sm font-semibold mb-3 tracking-wider uppercase">Recommended Immediate Actions:</p>
+                <ul className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  {getEmergencyProtocols(maxRiskPercentage).map((step, index) => (
+                    <li key={index} className="flex items-start gap-3 bg-slate-900/60 p-3 rounded-lg border border-red-500/20 shadow-sm">
+                      <ArrowRight className="w-5 h-5 text-red-400 shrink-0 mt-0.5" />
+                      <span className="text-slate-200 text-sm">{step}</span>
+                    </li>
+                  ))}
+                </ul>
+                <button 
+                  onClick={() => setShowProtocols(false)}
+                  className="mt-4 w-full bg-red-500 hover:bg-red-600 text-white font-bold py-2.5 rounded-lg shadow-md transition-colors"
+                >
+                  Acknowledge & Execute Protocols
+                </button>
+              </div>
+            )}
+          </div>
+        )}
+
+        <SearchAndGPS
+          searchQuery={searchQuery} onSearchChange={setSearchQuery} filterCategory={filterCategory}
+          onCategoryChange={setFilterCategory} categories={categories} isSimulating={isSimulating}
+          onToggleSimulation={() => setIsSimulating(s => !s)} refreshInterval={refreshInterval}
+          onRefreshIntervalChange={setRefreshInterval} onGPSLocate={handleGPSLocate} venues={simulatedVenues}
+        />
+
+        <SummaryKPIRow venues={simulatedVenues} onVenuesAtRiskClick={() => setFilterHighRisk(prev => !prev)} />
+
+        <div className="flex items-center justify-between">
+          <p className="text-sm" style={{ color: 'var(--muted-foreground)' }}>
+            <span className="font-semibold" style={{ color: 'var(--foreground)' }}>{filteredVenues.length}</span> venue{filteredVenues.length !== 1 ? 's' : ''} shown
+            {filterHighRisk && (
+              <span className="ml-2 inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium" style={{ background: 'rgba(239,68,68,0.12)', color: 'var(--density-high)', border: '1px solid rgba(239,68,68,0.25)' }}>
+                At Risk only <button onClick={() => setFilterHighRisk(false)} className="ml-1 hover:opacity-70" style={{ lineHeight: 1 }}>×</button>
+              </span>
+            )}
+          </p>
+          <button onClick={() => setShowAdmin(true)} className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition-all hover:scale-105" style={{ background: 'rgba(34,211,238,0.08)', border: '1px solid rgba(34,211,238,0.2)', color: 'var(--primary)' }}>
+            <Settings2 size={15} /> Manage Venues
+          </button>
+        </div>
+
+        <VenueGrid venues={filteredVenues} changedIds={changedIds} searchQuery={searchQuery} density={settings.gridDensity} timeShift={settings.timeShift} />
+      </main>
+    </div>
+  );
+}
