@@ -91,6 +91,25 @@ export default function DashboardClient() {
     return () => clearInterval(interval);
   }, [isSimulating, refreshInterval, venues.length]);
 
+  // Helper function to generate AI suggestions based on danger levels
+  const getEmergencyProtocols = (occupancyPercentage: number) => {
+    if (occupancyPercentage >= 95) {
+      return [
+        "CRITICAL: Initiate immediate partial evacuation.",
+        "Deploy security team to main entrances to halt inbound foot traffic.",
+        "Switch exterior traffic intersection signals to RED.",
+        "Open all auxiliary and emergency exits."
+      ];
+    } else if (occupancyPercentage >= 85) {
+      return [
+        "WARNING: Throttle entry gates to 50% flow.",
+        "Broadcast crowd dispersal announcements over PA system.",
+        "Prepare emergency exits for potential opening."
+      ];
+    }
+    return []; // No action needed if safe
+  };
+  
   // --- AUTO-PILOT LOOP ---
   useEffect(() => {
     if (!settings.autoPilot) return;
