@@ -87,7 +87,7 @@ export default function SummaryKPIRow({ venues, onVenuesAtRiskClick }: SummaryKP
       value: totalCapacity.toLocaleString(),
       subtext: 'max simultaneous',
       icon: TrendingUp,
-      color: '#651fa6',
+      color: 'var(--density-medium)',
       bg: 'rgba(30,41,59,0.6)',
       border: 'var(--border)',
       trend: null,
