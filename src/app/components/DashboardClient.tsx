@@ -159,8 +159,16 @@ export default function DashboardClient() {
     toast.success('Incident Report Generated', { description: 'The official log has been downloaded.' });
   };
   
-  // --- AUTO-PILOT LOOP ---
+  // --- SETTINGS EFFECTS (Theme & Auto-Pilot) ---
   useEffect(() => {
+    // 1. Handle Global Theme Application
+    if (settings.theme === 'light') {
+      document.body.classList.add('light-theme');
+    } else {
+      document.body.classList.remove('light-theme');
+    }
+
+    // 2. Handle Auto-Pilot Loop
     if (!settings.autoPilot) return;
     let direction = 1; 
     const interval = setInterval(() => {
@@ -171,8 +179,13 @@ export default function DashboardClient() {
         return { ...prev, timeShift: nextShift };
       });
     }, 500);
-    return () => clearInterval(interval);
-  }, [settings.autoPilot]);
+    
+    return () => {
+      clearInterval(interval);
+      // Cleanup theme class on unmount
+      document.body.classList.remove('light-theme');
+    };
+  }, [settings.autoPilot, settings.theme]);
 
   const handleAddVenue = useCallback((venue: Venue) => {
     setVenues(prev => { const updated = [...prev, venue]; saveVenues(updated); return updated; });
@@ -259,15 +272,32 @@ export default function DashboardClient() {
   }, []);
 
   return (
-    <div className={`min-h-screen ${settings.colorblind ? 'colorblind-theme' : ''} ${settings.nightVision ? 'night-vision-theme' : ''} ${settings.theme === 'light' ? 'light-theme' : ''}`}>
+    {/* REMOVED the light-theme class from this div because it is now applied globally to the body element */}
+    <div className={`min-h-screen ${settings.colorblind ? 'colorblind-theme' : ''} ${settings.nightVision ? 'night-vision-theme' : ''}`}>
       <style>{`
         .colorblind-theme { filter: hue-rotate(50deg) saturate(1.5) !important; }
         .night-vision-theme { filter: grayscale(100%) sepia(100%) hue-rotate(180deg) saturate(300%) brightness(45%) contrast(120%) !important; background-color: #030712 !important; }
         
-        /* 🔴 NEW: LIGHT MODE CSS INVERSION TRICK 🔴 */
-        .light-theme { 
-          filter: invert(1) hue-rotate(180deg) brightness(1.05) !important; 
-          background-color: #f8fafc !important; 
+        /* 🔴 FIXED: GLOBAL LIGHT MODE CSS INVERSION 🔴 */
+        body.light-theme { 
+          filter: invert(1) hue-rotate(180deg) brightness(1.05) contrast(0.95) !important; 
+          background-color: #ffffff !important; 
+        }
+
+        /* Fix the grey KPI boxes */
+        body.light-theme .bg-slate-900,
+        body.light-theme [style*="var(--surface-1)"] {
+          background-color: #f8fafc !important;
+        }
+
+        /* Fix icons turning weird colors */
+        body.light-theme svg {
+          filter: invert(1) hue-rotate(180deg) !important;
+        }
+
+        /* Fix text legibility */
+        body.light-theme .text-slate-400 {
+          color: #64748b !important;
         }
 
         .min-h-screen { transition: filter 0.5s ease, background-color 0.5s ease; }
