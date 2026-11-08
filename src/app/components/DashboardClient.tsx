@@ -272,58 +272,8 @@ export default function DashboardClient() {
   }, []);
 
   return (
-    {/* REMOVED the light-theme class from this div because it is now applied globally to the body element */}
     <div className={`min-h-screen ${settings.colorblind ? 'colorblind-theme' : ''} ${settings.nightVision ? 'night-vision-theme' : ''}`}>
-      <style>{`
-        .colorblind-theme { filter: hue-rotate(50deg) saturate(1.5) !important; }
-        .night-vision-theme { filter: grayscale(100%) sepia(100%) hue-rotate(180deg) saturate(300%) brightness(45%) contrast(120%) !important; background-color: #030712 !important; }
-        
-        /* 🔴 FIXED: GLOBAL LIGHT MODE CSS INVERSION 🔴 */
-        body.light-theme { 
-          filter: invert(1) hue-rotate(180deg) brightness(1.05) contrast(0.95) !important; 
-          background-color: #ffffff !important; 
-        }
-
-        /* Fix the grey KPI boxes */
-        body.light-theme .bg-slate-900,
-        body.light-theme [style*="var(--surface-1)"] {
-          background-color: #f8fafc !important;
-        }
-
-        /* Fix icons turning weird colors */
-        body.light-theme svg {
-          filter: invert(1) hue-rotate(180deg) !important;
-        }
-
-        /* Fix text legibility */
-        body.light-theme .text-slate-400 {
-          color: #64748b !important;
-        }
-
-        .min-h-screen { transition: filter 0.5s ease, background-color 0.5s ease; }
-        
-        /* 🔴 FORCE PERFECT PDF PRINTING 🔴 */
-        @media print {
-          @page { 
-            size: landscape; /* Force wide layout */
-            margin: 10mm; 
-          }
-          * {
-            -webkit-print-color-adjust: exact !important; /* Force browser to print dark backgrounds */
-            print-color-adjust: exact !important;
-          }
-          body {
-            background-color: #060c18 !important; /* Keep the dark theme */
-          }
-          button { 
-            display: none !important; /* Hide all clickable buttons on the PDF */
-          }
-          .grid > div {
-            break-inside: avoid; /* Prevent venue cards from getting cut in half across pages */
-          }
-        }
-      `}</style>
-
+      
       <DashboardTopbar 
         venues={simulatedVenues}
         settings={settings}
