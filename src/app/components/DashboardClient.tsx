@@ -161,12 +161,16 @@ export default function DashboardClient() {
   
   // --- SETTINGS EFFECTS (Theme & Auto-Pilot) ---
   useEffect(() => {
-    // 1. Handle Global Theme Application
-    if (settings.theme === 'light') {
-      document.body.classList.add('light-theme');
-    } else {
-      document.body.classList.remove('light-theme');
-    }
+    // 1. Handle Global Themes & Accessibility (Applied directly to the <html> tag)
+    const root = document.documentElement;
+    
+    // Clear previous themes to prevent overlapping
+    root.classList.remove('light-theme', 'colorblind-theme', 'night-vision-theme');
+    
+    // Apply the active themes
+    if (settings.theme === 'light') root.classList.add('light-theme');
+    if (settings.colorblind) root.classList.add('colorblind-theme');
+    if (settings.nightVision) root.classList.add('night-vision-theme');
 
     // 2. Handle Auto-Pilot Loop
     if (!settings.autoPilot) return;
@@ -182,10 +186,10 @@ export default function DashboardClient() {
     
     return () => {
       clearInterval(interval);
-      // Cleanup theme class on unmount
-      document.body.classList.remove('light-theme');
+      // Clean up themes on unmount
+      root.classList.remove('light-theme', 'colorblind-theme', 'night-vision-theme');
     };
-  }, [settings.autoPilot, settings.theme]);
+  }, [settings.autoPilot, settings.theme, settings.colorblind, settings.nightVision]);
 
   const handleAddVenue = useCallback((venue: Venue) => {
     setVenues(prev => { const updated = [...prev, venue]; saveVenues(updated); return updated; });
@@ -272,8 +276,65 @@ export default function DashboardClient() {
   }, []);
 
   return (
-    <div className={`min-h-screen ${settings.colorblind ? 'colorblind-theme' : ''} ${settings.nightVision ? 'night-vision-theme' : ''}`}>
-      
+    <div className="min-h-screen">
+      <style>{`
+        /* 🔴 GLOBAL THEMES APPLIED SECURELY TO THE HTML ROOT 🔴 */
+        html.colorblind-theme { filter: hue-rotate(50deg) saturate(1.5) !important; }
+        
+        html.night-vision-theme { 
+          filter: grayscale(100%) sepia(100%) hue-rotate(180deg) saturate(300%) brightness(45%) contrast(120%) !important; 
+          background-color: #030712 !important; 
+        }
+        
+        html.light-theme { 
+          filter: invert(1) hue-rotate(180deg) brightness(1.05) contrast(0.95) !important; 
+          background-color: #ffffff !important; 
+        }
+        
+        html.light-theme body {
+          background-color: #ffffff !important;
+        }
+
+        /* Clean up specific elements that invert poorly */
+        html.light-theme .bg-slate-900,
+        html.light-theme [style*="var(--surface-1)"] {
+          background-color: #f8fafc !important;
+        }
+        
+        /* Keep icons legible */
+        html.light-theme svg {
+          filter: invert(1) hue-rotate(180deg) !important;
+        }
+
+        /* Fix text legibility */
+        html.light-theme .text-slate-400 {
+          color: #64748b !important;
+        }
+
+        .min-h-screen { transition: filter 0.5s ease, background-color 0.5s ease; }
+        
+        /* 🔴 FORCE PERFECT PDF PRINTING 🔴 */
+        @media print {
+          @page { 
+            size: landscape; /* Force wide layout */
+            margin: 10mm; 
+          }
+          * {
+            -webkit-print-color-adjust: exact !important; 
+            print-color-adjust: exact !important;
+          }
+          body {
+            background-color: #060c18 !important; /* Keep the dark theme */
+          }
+          button { 
+            display: none !important; /* Hide all clickable buttons on the PDF */
+          }
+          .grid > div {
+            break-inside: avoid; /* Prevent venue cards from getting cut in half across pages */
+          }
+        }
+      `}</style>
+
       <DashboardTopbar 
         venues={simulatedVenues}
         settings={settings}
