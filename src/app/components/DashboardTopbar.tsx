@@ -292,9 +292,9 @@ export default function DashboardTopbar({
               )}
             </div>
             
-            <div className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-semibold ml-2" style={{ background: 'rgba(34,211,238,0.15)', color: 'var(--primary)' }}>AW</div>
+            <div className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-semibold ml-2" style={{ background: 'rgba(34,211,238,0.15)', color: 'var(--primary)' }}>B</div>
             <div className="hidden sm:block text-left">
-              <p className="text-xs font-medium" style={{ color: 'var(--foreground)' }}>Ansh Wairagkar</p>
+              <p className="text-xs font-medium" style={{ color: 'var(--foreground)' }}>Balvigyan 2026-27</p>
               <p className="text-xs" style={{ color: 'var(--muted-foreground)' }}>Admin</p>
             </div>
           </div>
