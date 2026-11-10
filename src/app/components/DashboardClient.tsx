@@ -126,7 +126,7 @@ export default function DashboardClient() {
     const maxRiskPercentageNow = Math.max(...highRiskVenuesNow.map(v => (v.presentCount / v.maxCapacity) * 100));
 
     let reportContent = `=========================================\n`;
-    reportContent += `   CROWD CHECK AI - INCIDENT REPORT\n`;
+    reportContent += `   SANJAY AI - INCIDENT REPORT\n`;
     reportContent += `=========================================\n`;
     reportContent += `Generated: ${new Date().toLocaleString()}\n`;
     reportContent += `Operator: Admin / Security Desk\n\n`;
