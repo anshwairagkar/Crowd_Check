@@ -65,7 +65,7 @@ export default function DashboardTopbar({
             <div className="flex items-center gap-2 cursor-pointer">
               <AppLogo size={32} />
               <span className="font-semibold text-lg tracking-tight" style={{ color: 'var(--foreground)' }}>
-                Crowd Check
+                SANJAY
                 <span className="ml-1 text-xs font-medium px-1.5 py-0.5 rounded" style={{ background: 'rgba(34,211,238,0.12)', color: 'var(--primary)' }}>AI</span>
               </span>
             </div>
