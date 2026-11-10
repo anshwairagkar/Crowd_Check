@@ -34,7 +34,7 @@ export default function LoginPage() {
         </div>
         <div>
           <h1 className="text-2xl font-bold text-white tracking-tight">
-            Crowd Check <span className="text-teal-400">AI</span>
+            SANJAY <span className="text-teal-400">AI</span>
           </h1>
           <p className="text-slate-400 text-sm">Secure Command Center</p>
         </div>
