@@ -74,11 +74,11 @@ export default function DashboardTopbar({
           <div className="hidden md:flex items-center gap-2 text-sm" style={{ color: 'var(--muted-foreground)' }}>
             <span className="flex items-center gap-1.5">
               <span className="inline-block w-2 h-2 rounded-full live-pulse" style={{ background: 'var(--density-low)' }} />
-              <span>Live Monitoring Active</span>
+              <span>Live Monitoring Inactive</span>
             </span>
             <span className="mx-2 opacity-30">|</span>
             <Activity size={14} style={{ color: 'var(--primary)' }} />
-            <span style={{ color: 'var(--primary)' }} className="font-medium">AI Camera Feeds Online</span>
+            <span style={{ color: 'var(--primary)' }} className="font-medium">AI Camera Feed (Simulation Mode) Online</span>
           </div>
 
           <div className="flex items-center gap-2">
