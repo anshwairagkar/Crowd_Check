@@ -10,7 +10,7 @@ import '../styles/tailwind.css';
 const dmSans = DM_Sans({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
-  title: 'Crowd Check AI',
+  title: 'SANJAY AI',
   description: 'Real-Time Crowd Monitoring Dashboard',
   verification: {
     // 🔴 PASTE YOUR ACTUAL GOOGLE CODE STRING HERE:
