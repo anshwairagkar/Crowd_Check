@@ -78,7 +78,7 @@ export default function DashboardTopbar({
             </span>
             <span className="mx-2 opacity-30">|</span>
             <Activity size={14} style={{ color: 'var(--primary)' }} />
-            <span style={{ color: 'var(--primary)' }} className="font-medium">AI Camera Feed (Simulation Mode) Online</span>
+            <span style={{ color: 'var(--primary)' }} className="font-medium">AI Camera Feed (Simulation Mode)</span>
           </div>
 
           <div className="flex items-center gap-2">
