@@ -59,7 +59,9 @@
     "react": "19.0.3",
     "react-dom": "19.0.3",
     "recharts": "^2.15.2",
-    "sonner": "^1.7.4"
+    "sonner": "^1.7.4",
+    "@tensorflow/tfjs": "^4.17.0",
+    "@tensorflow-models/coco-ssd": "^2.2.3"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
