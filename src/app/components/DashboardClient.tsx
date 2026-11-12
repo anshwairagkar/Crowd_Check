@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { AlertTriangle, ShieldAlert, ArrowRight, ChevronDown, ChevronUp, X, Settings2, Download } from 'lucide-react';
+import { AlertTriangle, ShieldAlert, ArrowRight, ChevronDown, ChevronUp, X, Settings2, Download, Camera } from 'lucide-react';
 import { Toaster, toast } from 'sonner';
 import { Venue, getDensityLevel, checkIsOpen } from './venueData';
 import { loadVenues, saveVenues } from './mockDb';
@@ -11,6 +11,7 @@ import VenueGrid from './VenueGrid';
 import LiveTickerBar from './LiveTickerBar';
 import AdminPanel from './AdminPanel';
 import DashboardTopbar from './DashboardTopbar';
+import LiveCameraScanner from './LiveCameraScanner';
 
 export interface AppSettings {
   timeShift: number; 
@@ -41,6 +42,10 @@ export default function DashboardClient() {
   
   // AI Actions State
   const [showProtocols, setShowProtocols] = useState(false);
+  
+  // NEW: Live AI Camera States
+  const [showLiveCamera, setShowLiveCamera] = useState(false);
+  const [liveAiCount, setLiveAiCount] = useState<number | null>(null);
   
   const prevHighRisk = useRef<string[]>([]);
   
@@ -96,7 +101,6 @@ export default function DashboardClient() {
     return () => clearInterval(interval);
   }, [isSimulating, refreshInterval, venues.length]);
 
-  // Helper function to generate AI suggestions based on danger levels
   const getEmergencyProtocols = (occupancyPercentage: number) => {
     if (occupancyPercentage >= 95) {
       return [
@@ -112,10 +116,9 @@ export default function DashboardClient() {
         "Prepare emergency exits for potential opening."
       ];
     }
-    return []; // No action needed if safe
+    return []; 
   };
 
-  // NEW: Function to generate and download the Incident Report
   const handleExportReport = () => {
     const highRiskVenuesNow = venues.filter(v => ['HIGH', 'CRITICAL'].includes(getDensityLevel(v.presentCount, v.maxCapacity)));
     if (highRiskVenuesNow.length === 0) {
@@ -126,7 +129,7 @@ export default function DashboardClient() {
     const maxRiskPercentageNow = Math.max(...highRiskVenuesNow.map(v => (v.presentCount / v.maxCapacity) * 100));
 
     let reportContent = `=========================================\n`;
-    reportContent += `   SANJAY AI - INCIDENT REPORT\n`;
+    reportContent += `   CROWD CHECK AI - INCIDENT REPORT\n`;
     reportContent += `=========================================\n`;
     reportContent += `Generated: ${new Date().toLocaleString()}\n`;
     reportContent += `Operator: Admin / Security Desk\n\n`;
@@ -145,7 +148,6 @@ export default function DashboardClient() {
     reportContent += `\n=========================================\n`;
     reportContent += `End of Log. System ID: ${Date.now()}\n`;
 
-    // Create and download the file
     const blob = new Blob([reportContent], { type: 'text/plain' });
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
@@ -159,20 +161,14 @@ export default function DashboardClient() {
     toast.success('Incident Report Generated', { description: 'The official log has been downloaded.' });
   };
   
-  // --- SETTINGS EFFECTS (Theme & Auto-Pilot) ---
   useEffect(() => {
-    // 1. Handle Global Themes & Accessibility (Applied directly to the <html> tag)
     const root = document.documentElement;
-    
-    // Clear previous themes to prevent overlapping
     root.classList.remove('light-theme', 'colorblind-theme', 'night-vision-theme');
     
-    // Apply the active themes
     if (settings.theme === 'light') root.classList.add('light-theme');
     if (settings.colorblind) root.classList.add('colorblind-theme');
     if (settings.nightVision) root.classList.add('night-vision-theme');
 
-    // 2. Handle Auto-Pilot Loop
     if (!settings.autoPilot) return;
     let direction = 1; 
     const interval = setInterval(() => {
@@ -186,7 +182,6 @@ export default function DashboardClient() {
     
     return () => {
       clearInterval(interval);
-      // Clean up themes on unmount
       root.classList.remove('light-theme', 'colorblind-theme', 'night-vision-theme');
     };
   }, [settings.autoPilot, settings.theme, settings.colorblind, settings.nightVision]);
@@ -252,6 +247,13 @@ export default function DashboardClient() {
       simulatedWaiting = Math.max(0, Math.floor(simulatedWaiting * (1 + settings.timeShift * 0.1)));
     }
 
+    // 🔴 NEW: AI LIVE CAMERA OVERRIDE 🔴
+    // If the camera is on, override the very first venue in the list with the real-time AI count
+    if (showLiveCamera && liveAiCount !== null && venue.id === venues[0]?.id) {
+      simulatedPresent = liveAiCount;
+      simulatedWaiting = 0;
+    }
+
     return { ...venue, presentCount: simulatedPresent, waitingCount: simulatedWaiting, lastUpdated: simulatedLastUpdated };
   });
 
@@ -265,7 +267,6 @@ export default function DashboardClient() {
   const categories = ['ALL', ...Array.from(new Set(simulatedVenues.map(v => v.category)))];
   const highRiskVenues = simulatedVenues.filter(v => ['HIGH', 'CRITICAL'].includes(getDensityLevel(v.presentCount, v.maxCapacity)));
   
-  // Calculate max danger level dynamically for the AI Protocols
   const maxRiskPercentage = highRiskVenues.length > 0 
     ? Math.max(...highRiskVenues.map(v => (v.presentCount / v.maxCapacity) * 100))
     : 0;
@@ -295,52 +296,31 @@ export default function DashboardClient() {
           background-color: #ffffff !important;
         }
 
-        /* Clean up specific elements that invert poorly */
         html.light-theme .bg-slate-900,
         html.light-theme [style*="var(--surface-1)"] {
           background-color: #f8fafc !important;
         }
         
-        /* Keep icons legible */
         html.light-theme svg {
           filter: invert(1) hue-rotate(180deg) !important;
         }
 
-        /* Fix text legibility */
         html.light-theme .text-slate-400 {
           color: #64748b !important;
         }
 
         .min-h-screen { transition: filter 0.5s ease, background-color 0.5s ease; }
         
-        /* 🔴 FORCE PERFECT PDF PRINTING 🔴 */
         @media print {
-          @page { 
-            size: landscape; /* Force wide layout */
-            margin: 10mm; 
-          }
-          * {
-            -webkit-print-color-adjust: exact !important; 
-            print-color-adjust: exact !important;
-          }
-          body {
-            background-color: #060c18 !important; /* Keep the dark theme */
-          }
-          button { 
-            display: none !important; /* Hide all clickable buttons on the PDF */
-          }
-          .grid > div {
-            break-inside: avoid; /* Prevent venue cards from getting cut in half across pages */
-          }
+          @page { size: landscape; margin: 10mm; }
+          * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+          body { background-color: #060c18 !important; }
+          button { display: none !important; }
+          .grid > div { break-inside: avoid; }
         }
       `}</style>
 
-      <DashboardTopbar 
-        venues={simulatedVenues}
-        settings={settings}
-        onUpdateSettings={setSettings}
-      />
-      
+      <DashboardTopbar venues={simulatedVenues} settings={settings} onUpdateSettings={setSettings} />
       <Toaster position="bottom-right" theme="dark" toastOptions={{ style: { background: 'var(--surface-2)', border: '1px solid var(--border)', color: 'var(--foreground)' } }} />
 
       {showAdmin && (
@@ -353,7 +333,6 @@ export default function DashboardClient() {
         />
       )}
 
-      {/* DYNAMIC DEVICE WRAPPER */}
       <main 
         className={`mx-auto px-4 lg:px-8 xl:px-10 py-6 space-y-6 transition-all duration-500 ease-in-out ${
           settings.deviceView === 'mobile' ? 'max-w-[430px] border-x border-dashed border-white/20 bg-black/20 shadow-2xl' : 
@@ -363,7 +342,6 @@ export default function DashboardClient() {
       >
         <LiveTickerBar venues={simulatedVenues} lastRefresh={lastRefresh} />
         
-        {/* NEW AI PROTOCOLS GLOBAL BANNER */}
         {highRiskVenues.length > 0 && (
           <div className="bg-red-500/10 border border-red-500/50 rounded-xl shadow-[0_0_15px_rgba(239,68,68,0.15)] transition-all duration-300">
             <div className="p-4 flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -381,10 +359,7 @@ export default function DashboardClient() {
                 </div>
               </div>
               
-              <button 
-                onClick={() => setShowProtocols(!showProtocols)}
-                className="flex items-center justify-center gap-2 bg-red-500/20 hover:bg-red-500/30 text-red-300 px-4 py-2 rounded-lg border border-red-500/30 transition-colors font-semibold shrink-0"
-              >
+              <button onClick={() => setShowProtocols(!showProtocols)} className="flex items-center justify-center gap-2 bg-red-500/20 hover:bg-red-500/30 text-red-300 px-4 py-2 rounded-lg border border-red-500/30 transition-colors font-semibold shrink-0">
                 <ShieldAlert className="w-5 h-5" />
                 {showProtocols ? 'Hide Protocols' : 'View AI Protocols'}
                 {showProtocols ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
@@ -402,21 +377,12 @@ export default function DashboardClient() {
                     </li>
                   ))}
                 </ul>
-                
-                {/* UPGRADED: Two-button layout for Acknowledge and Export */}
                 <div className="mt-5 flex flex-col md:flex-row gap-3">
-                  <button 
-                    onClick={() => setShowProtocols(false)}
-                    className="flex-1 bg-red-500 hover:bg-red-600 text-white font-bold py-2.5 rounded-lg shadow-md transition-colors"
-                  >
+                  <button onClick={() => setShowProtocols(false)} className="flex-1 bg-red-500 hover:bg-red-600 text-white font-bold py-2.5 rounded-lg shadow-md transition-colors">
                     Acknowledge & Execute Protocols
                   </button>
-                  <button 
-                    onClick={handleExportReport}
-                    className="flex items-center justify-center gap-2 px-6 py-2.5 bg-slate-800 hover:bg-slate-700 text-white font-semibold rounded-lg border border-slate-600 transition-colors"
-                  >
-                    <Download className="w-5 h-5" />
-                    Export Incident Log
+                  <button onClick={handleExportReport} className="flex items-center justify-center gap-2 px-6 py-2.5 bg-slate-800 hover:bg-slate-700 text-white font-semibold rounded-lg border border-slate-600 transition-colors">
+                    <Download className="w-5 h-5" /> Export Incident Log
                   </button>
                 </div>
               </div>
@@ -433,6 +399,7 @@ export default function DashboardClient() {
 
         <SummaryKPIRow venues={simulatedVenues} onVenuesAtRiskClick={() => setFilterHighRisk(prev => !prev)} />
 
+        {/* 🔴 NEW: Live Camera Toggle Button & Video Display 🔴 */}
         <div className="flex items-center justify-between">
           <p className="text-sm" style={{ color: 'var(--muted-foreground)' }}>
             <span className="font-semibold" style={{ color: 'var(--foreground)' }}>{filteredVenues.length}</span> venue{filteredVenues.length !== 1 ? 's' : ''} shown
@@ -442,10 +409,28 @@ export default function DashboardClient() {
               </span>
             )}
           </p>
-          <button onClick={() => setShowAdmin(true)} className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition-all hover:scale-105" style={{ background: 'rgba(34,211,238,0.08)', border: '1px solid rgba(34,211,238,0.2)', color: 'var(--primary)' }}>
-            <Settings2 size={15} /> Manage Venues
-          </button>
+          <div className="flex gap-2">
+            <button 
+              onClick={() => setShowLiveCamera(!showLiveCamera)} 
+              className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition-all hover:scale-105" 
+              style={{ background: showLiveCamera ? 'rgba(239,68,68,0.1)' : 'rgba(34,211,238,0.08)', border: showLiveCamera ? '1px solid rgba(239,68,68,0.3)' : '1px solid rgba(34,211,238,0.2)', color: showLiveCamera ? '#ef4444' : 'var(--primary)' }}
+            >
+              <Camera size={15} /> {showLiveCamera ? 'Stop Live AI Camera' : 'Start Live AI Camera'}
+            </button>
+            <button onClick={() => setShowAdmin(true)} className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition-all hover:scale-105" style={{ background: 'rgba(34,211,238,0.08)', border: '1px solid rgba(34,211,238,0.2)', color: 'var(--primary)' }}>
+              <Settings2 size={15} /> Manage Venues
+            </button>
+          </div>
         </div>
+
+        {showLiveCamera && (
+          <div className="mb-6">
+            <LiveCameraScanner onCountUpdate={setLiveAiCount} />
+            <div className="mt-3 text-center text-sm text-cyan-400 font-semibold animate-pulse">
+              Live AI Override Active: Pushing {liveAiCount || 0} detected people into {venues[0]?.name}
+            </div>
+          </div>
+        )}
 
         <VenueGrid venues={filteredVenues} changedIds={changedIds} searchQuery={searchQuery} density={settings.gridDensity} timeShift={settings.timeShift} />
       </main>
