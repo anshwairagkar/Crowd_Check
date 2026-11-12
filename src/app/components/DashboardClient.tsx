@@ -361,7 +361,7 @@ export default function DashboardClient() {
               
               <button onClick={() => setShowProtocols(!showProtocols)} className="flex items-center justify-center gap-2 bg-red-500/20 hover:bg-red-500/30 text-red-300 px-4 py-2 rounded-lg border border-red-500/30 transition-colors font-semibold shrink-0">
                 <ShieldAlert className="w-5 h-5" />
-                {showProtocols ? 'Hide Protocols' : 'View AI Protocols'}
+                {showProtocols ? 'Hide Protocols' : 'View Predefined Protocols'}
                 {showProtocols ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
               </button>
             </div>
