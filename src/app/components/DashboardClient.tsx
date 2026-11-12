@@ -43,9 +43,10 @@ export default function DashboardClient() {
   // AI Actions State
   const [showProtocols, setShowProtocols] = useState(false);
   
-  // NEW: Live AI Camera States
+  // Live AI Camera States
   const [showLiveCamera, setShowLiveCamera] = useState(false);
   const [liveAiCount, setLiveAiCount] = useState<number | null>(null);
+  const [liveGps, setLiveGps] = useState<string>('Detecting location...');
   
   const prevHighRisk = useRef<string[]>([]);
   
@@ -88,7 +89,9 @@ export default function DashboardClient() {
         const newlyHigh = highRiskNow.filter(id => !prevHighRisk.current.includes(id));
         newlyHigh.forEach(id => {
           const v = updated.find(x => x.id === id);
-          if (v) toast.error(`⚠ ${v.name} reached HIGH density`, { description: `${v.presentCount} / ${v.maxCapacity} capacity`, duration: 5000 });
+          if (v && v.id !== 'live-cctv-ai') { // Don't spam toasts for the live camera
+            toast.error(`⚠ ${v.name} reached HIGH density`, { description: `${v.presentCount} / ${v.maxCapacity} capacity`, duration: 5000 });
+          }
         });
         prevHighRisk.current = highRiskNow;
         setChangedIds(new Set(updated.map(v => v.id)));
@@ -100,6 +103,26 @@ export default function DashboardClient() {
 
     return () => clearInterval(interval);
   }, [isSimulating, refreshInterval, venues.length]);
+
+  // Handle Real-Time GPS fetching when camera turns on
+  useEffect(() => {
+    if (showLiveCamera) {
+      if ("geolocation" in navigator) {
+        navigator.geolocation.getCurrentPosition(
+          (position) => {
+            setLiveGps(`${position.coords.latitude.toFixed(4)}, ${position.coords.longitude.toFixed(4)}`);
+          },
+          (error) => {
+            setLiveGps('GPS Permission Denied');
+          }
+        );
+      } else {
+        setLiveGps('GPS Not Supported');
+      }
+    } else {
+      setLiveGps('Detecting location...');
+    }
+  }, [showLiveCamera]);
 
   const getEmergencyProtocols = (occupancyPercentage: number) => {
     if (occupancyPercentage >= 95) {
@@ -221,7 +244,7 @@ export default function DashboardClient() {
     } catch (e) { return true; }
   };
 
-  const simulatedVenues = venues.map(venue => {
+  const baseSimulatedVenues = venues.map(venue => {
     const isSimulatedOpen = checkOpenWithOffset(venue.openHours, settings.timeShift);
     const isRealOpen = checkOpenWithOffset(venue.openHours, 0); 
     
@@ -247,15 +270,25 @@ export default function DashboardClient() {
       simulatedWaiting = Math.max(0, Math.floor(simulatedWaiting * (1 + settings.timeShift * 0.1)));
     }
 
-    // 🔴 NEW: AI LIVE CAMERA OVERRIDE 🔴
-    // If the camera is on, override the very first venue in the list with the real-time AI count
-    if (showLiveCamera && liveAiCount !== null && venue.id === venues[0]?.id) {
-      simulatedPresent = liveAiCount;
-      simulatedWaiting = 0;
-    }
-
     return { ...venue, presentCount: simulatedPresent, waitingCount: simulatedWaiting, lastUpdated: simulatedLastUpdated };
   });
+
+  // 🔴 NEW: Inject the Live AI Camera as a brand new Venue at the very top of the list
+  const simulatedVenues = [...baseSimulatedVenues];
+  
+  if (showLiveCamera) {
+    simulatedVenues.unshift({
+      id: 'live-cctv-ai',
+      name: 'Live CCTV Integration',
+      address: `📍 GPS: (${liveGps})`,
+      category: 'AI SURVEILLANCE', // This automatically creates a new category in your dropdown!
+      maxCapacity: 15, // Set deliberately low so you can easily trigger a High Risk alert just by getting a few friends on camera
+      presentCount: liveAiCount || 0,
+      waitingCount: 0,
+      openHours: '24/7',
+      lastUpdated: new Date().toLocaleTimeString('en-US', { hour12: false })
+    });
+  }
 
   const filteredVenues = simulatedVenues.filter(v => {
     const matchesSearch = v.name.toLowerCase().includes(searchQuery.toLowerCase()) || v.address.toLowerCase().includes(searchQuery.toLowerCase()) || v.category.toLowerCase().includes(searchQuery.toLowerCase());
@@ -279,7 +312,7 @@ export default function DashboardClient() {
   return (
     <div className="min-h-screen">
       <style>{`
-        /* 🔴 GLOBAL THEMES APPLIED SECURELY TO THE HTML ROOT 🔴 */
+        /* GLOBAL THEMES APPLIED SECURELY TO THE HTML ROOT */
         html.colorblind-theme { filter: hue-rotate(50deg) saturate(1.5) !important; }
         
         html.night-vision-theme { 
@@ -292,22 +325,10 @@ export default function DashboardClient() {
           background-color: #ffffff !important; 
         }
         
-        html.light-theme body {
-          background-color: #ffffff !important;
-        }
-
-        html.light-theme .bg-slate-900,
-        html.light-theme [style*="var(--surface-1)"] {
-          background-color: #f8fafc !important;
-        }
-        
-        html.light-theme svg {
-          filter: invert(1) hue-rotate(180deg) !important;
-        }
-
-        html.light-theme .text-slate-400 {
-          color: #64748b !important;
-        }
+        html.light-theme body { background-color: #ffffff !important; }
+        html.light-theme .bg-slate-900, html.light-theme [style*="var(--surface-1)"] { background-color: #f8fafc !important; }
+        html.light-theme svg { filter: invert(1) hue-rotate(180deg) !important; }
+        html.light-theme .text-slate-400 { color: #64748b !important; }
 
         .min-h-screen { transition: filter 0.5s ease, background-color 0.5s ease; }
         
@@ -361,7 +382,7 @@ export default function DashboardClient() {
               
               <button onClick={() => setShowProtocols(!showProtocols)} className="flex items-center justify-center gap-2 bg-red-500/20 hover:bg-red-500/30 text-red-300 px-4 py-2 rounded-lg border border-red-500/30 transition-colors font-semibold shrink-0">
                 <ShieldAlert className="w-5 h-5" />
-                {showProtocols ? 'Hide Protocols' : 'View Predefined Protocols'}
+                {showProtocols ? 'Hide Protocols' : 'View AI Protocols'}
                 {showProtocols ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
               </button>
             </div>
@@ -399,7 +420,6 @@ export default function DashboardClient() {
 
         <SummaryKPIRow venues={simulatedVenues} onVenuesAtRiskClick={() => setFilterHighRisk(prev => !prev)} />
 
-        {/* 🔴 NEW: Live Camera Toggle Button & Video Display 🔴 */}
         <div className="flex items-center justify-between">
           <p className="text-sm" style={{ color: 'var(--muted-foreground)' }}>
             <span className="font-semibold" style={{ color: 'var(--foreground)' }}>{filteredVenues.length}</span> venue{filteredVenues.length !== 1 ? 's' : ''} shown
@@ -427,7 +447,7 @@ export default function DashboardClient() {
           <div className="mb-6">
             <LiveCameraScanner onCountUpdate={setLiveAiCount} />
             <div className="mt-3 text-center text-sm text-cyan-400 font-semibold animate-pulse">
-              Live AI Override Active: Pushing {liveAiCount || 0} detected people into {venues[0]?.name}
+              Live AI Feed Active: Tracking {liveAiCount || 0} people in real-time.
             </div>
           </div>
         )}
